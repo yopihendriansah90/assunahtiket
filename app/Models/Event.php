@@ -29,6 +29,11 @@ class Event extends Model
         ];
     }
 
+    public function isLocked(): bool
+    {
+        return filled($this->locked_at);
+    }
+
     protected static function booted(): void
     {
         static::creating(function (Event $event): void {

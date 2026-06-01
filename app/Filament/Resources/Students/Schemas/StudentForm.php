@@ -105,7 +105,6 @@ class StudentForm
                     ->options([
                         'draft' => 'Draf',
                         'ready' => 'Siap',
-                        'locked' => 'Terkunci',
                     ])
                     ->label('Status')
                     ->required()

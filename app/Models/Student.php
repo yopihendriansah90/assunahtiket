@@ -34,13 +34,23 @@ class Student extends Model
         static::creating(function (self $student): void {
             $student->created_by ??= auth()->id();
             $student->updated_by ??= auth()->id();
+            $student->status ??= 'draft';
+            static::ensureEventIsMutable($student);
         });
 
         static::updating(function (self $student): void {
             $student->updated_by = auth()->id();
+            $student->status ??= 'draft';
+            static::ensureEventIsMutable($student);
+        });
+
+        static::deleting(function (self $student): void {
+            static::ensureEventIsMutable($student);
         });
 
         static::saving(function (self $student): void {
+            static::ensureEventIsMutable($student);
+
             if (
                 blank($student->event_id)
                 || blank($student->class_id)
@@ -62,6 +72,42 @@ class Student extends Model
                 ]);
             }
         });
+    }
+
+    protected static function ensureEventIsMutable(self $student): void
+    {
+        if (static::canBypassEventLock()) {
+            return;
+        }
+
+        if (blank($student->event_id)) {
+            return;
+        }
+
+        if (! static::isEventLocked($student->event_id)) {
+            return;
+        }
+
+        throw ValidationException::withMessages([
+            'event_id' => 'Data siswa pada acara yang sudah dikunci tidak dapat diubah.',
+        ]);
+    }
+
+    protected static function canBypassEventLock(): bool
+    {
+        return auth()->user()?->hasRole('super_admin') ?? false;
+    }
+
+    public static function isEventLocked(int|string|null $eventId): bool
+    {
+        if (blank($eventId)) {
+            return false;
+        }
+
+        return Event::query()
+            ->whereKey($eventId)
+            ->whereNotNull('locked_at')
+            ->exists();
     }
 
     public static function hasDuplicateIdentity(

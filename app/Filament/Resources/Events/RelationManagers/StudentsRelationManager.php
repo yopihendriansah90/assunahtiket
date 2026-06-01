@@ -3,7 +3,6 @@
 namespace App\Filament\Resources\Events\RelationManagers;
 
 use App\Models\Student;
-use Illuminate\Database\Eloquent\Model;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\CreateAction;
 use Filament\Actions\DeleteAction;
@@ -14,14 +13,34 @@ use Filament\Forms\Components\TextInput;
 use Filament\Resources\RelationManagers\RelationManager;
 use Filament\Schemas\Components\Utilities\Get;
 use Filament\Schemas\Schema;
+use Filament\Tables\Columns\SelectColumn;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Model;
 
 class StudentsRelationManager extends RelationManager
 {
     protected static string $relationship = 'students';
     protected static ?string $title = 'Siswa';
+
+    private static function statusOptions(): array
+    {
+        return [
+            'draft' => 'Draf',
+            'ready' => 'Siap',
+        ];
+    }
+
+    private function isOwnerEventLocked(): bool
+    {
+        return filled($this->getOwnerRecord()->locked_at);
+    }
+
+    private function canBypassEventLock(): bool
+    {
+        return auth()->user()?->hasRole('super_admin') ?? false;
+    }
 
     public static function canViewForRecord(Model $ownerRecord, string $pageClass): bool
     {
@@ -41,6 +60,9 @@ class StudentsRelationManager extends RelationManager
 
     public function form(Schema $schema): Schema
     {
+        $isLocked = $this->isOwnerEventLocked();
+        $canBypassLock = $this->canBypassEventLock();
+
         return $schema
             ->components([
                 Select::make('class_id')
@@ -55,11 +77,13 @@ class StudentsRelationManager extends RelationManager
                     )
                     ->required()
                     ->searchable()
-                    ->preload(),
+                    ->preload()
+                    ->disabled($isLocked && ! $canBypassLock),
                 TextInput::make('name')
                     ->label('Nama Siswa')
                     ->required()
                     ->maxLength(255)
+                    ->disabled($isLocked && ! $canBypassLock)
                     ->rule(function (Get $get, ?Student $record): callable {
                         return function (string $attribute, mixed $value, \Closure $fail) use ($get, $record): void {
                             $eventId = $this->getOwnerRecord()->id;
@@ -88,11 +112,19 @@ class StudentsRelationManager extends RelationManager
                         'male' => 'Laki-laki',
                         'female' => 'Perempuan',
                     ])
-                    ->required(),
+                    ->required()
+                    ->disabled($isLocked && ! $canBypassLock),
+                Select::make('status')
+                    ->label('Status')
+                    ->options(self::statusOptions())
+                    ->required()
+                    ->default('draft')
+                    ->disabled($isLocked && ! $canBypassLock),
                 TextInput::make('mother_name')
                     ->label('Nama Ibu Kandung')
                     ->required()
                     ->maxLength(255)
+                    ->disabled($isLocked && ! $canBypassLock)
                     ->rule(function (Get $get, ?Student $record): callable {
                         return function (string $attribute, mixed $value, \Closure $fail) use ($get, $record): void {
                             $eventId = $this->getOwnerRecord()->id;
@@ -111,7 +143,7 @@ class StudentsRelationManager extends RelationManager
                                 motherName: $motherName,
                                 ignoreId: $record?->getKey(),
                             )) {
-                                $fail('Kombinasi nama siswa dan nama ibu kandung sudah terdaftar pada acara dan kelas ini.');
+                                $fail('Kombinasi nama siswa dan nama ibu kandung sudah terdaftar pada acara ini.');
                             }
                         };
                     }),
@@ -121,6 +153,8 @@ class StudentsRelationManager extends RelationManager
     public function table(Table $table): Table
     {
         $user = auth()->user();
+        $isLocked = $this->isOwnerEventLocked();
+        $canBypassLock = $this->canBypassEventLock();
 
         return $table
             ->modifyQueryUsing(function (Builder $query) use ($user): Builder {
@@ -132,10 +166,9 @@ class StudentsRelationManager extends RelationManager
             })
             ->recordTitleAttribute('name')
             ->columns([
-                          TextColumn::make('index')
+                TextColumn::make('index')
                     ->label('No.')
                     ->rowIndex(),
-
                 TextColumn::make('eventClass.name')
                     ->label('Kelas')
                     ->sortable()
@@ -151,6 +184,12 @@ class StudentsRelationManager extends RelationManager
                         default => $state,
                     })
                     ->badge(),
+                SelectColumn::make('status')
+                    ->label('Status')
+                    ->options(self::statusOptions())
+                    ->native(false)
+                    ->selectablePlaceholder(false)
+                    ->disabled($isLocked && ! $canBypassLock),
                 TextColumn::make('mother_name')
                     ->label('Nama Ibu Kandung')
                     ->toggleable(),
@@ -159,24 +198,42 @@ class StudentsRelationManager extends RelationManager
                 //
             ])
             ->headerActions([
-                CreateAction::make()
-                    ->label('Tambah Siswa')
-                    ->successNotificationTitle('Data siswa berhasil disimpan.'),
+                ...(
+                    $isLocked && ! $canBypassLock
+                        ? []
+                        : [
+                            CreateAction::make()
+                                ->label('Tambah Siswa')
+                                ->successNotificationTitle('Data siswa berhasil disimpan.'),
+                        ]
+                ),
             ])
             ->recordActions([
-                EditAction::make()
-                    ->label('Ubah')
-                    ->successNotificationTitle('Data siswa berhasil diperbarui.'),
-                DeleteAction::make()
-                    ->label('Hapus')
-                    ->successNotificationTitle('Data siswa berhasil dihapus.'),
+                ...(
+                    $isLocked && ! $canBypassLock
+                        ? []
+                        : [
+                            EditAction::make()
+                                ->label('Ubah')
+                                ->successNotificationTitle('Data siswa berhasil diperbarui.'),
+                            DeleteAction::make()
+                                ->label('Hapus')
+                                ->successNotificationTitle('Data siswa berhasil dihapus.'),
+                        ]
+                ),
             ])
             ->toolbarActions([
-                BulkActionGroup::make([
-                    DeleteBulkAction::make()
-                        ->label('Hapus Terpilih')
-                        ->successNotificationTitle('Data siswa berhasil dihapus.'),
-                ]),
+                ...(
+                    $isLocked && ! $canBypassLock
+                        ? []
+                        : [
+                            BulkActionGroup::make([
+                                DeleteBulkAction::make()
+                                    ->label('Hapus Terpilih')
+                                    ->successNotificationTitle('Data siswa berhasil dihapus.'),
+                            ]),
+                        ]
+                ),
             ]);
     }
 }

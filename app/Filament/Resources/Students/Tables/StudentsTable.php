@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\Students\Tables;
 
+use App\Models\Student;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
@@ -15,6 +16,7 @@ class StudentsTable
     public static function configure(Table $table): Table
     {
         $user = auth()->user();
+        $canBypassLock = $user?->hasRole('super_admin') ?? false;
 
         return $table
             ->modifyQueryUsing(function ($query) use ($user) {
@@ -99,11 +101,12 @@ class StudentsTable
                     ->options([
                         'draft' => 'Draf',
                         'ready' => 'Siap',
-                        'locked' => 'Terkunci',
                     ]),
             ])
             ->recordActions([
-                EditAction::make()->label('Ubah'),
+                EditAction::make()
+                    ->label('Ubah')
+                    ->visible(fn (Student $record): bool => ! $record->event?->isLocked() || $canBypassLock),
             ])
             ->toolbarActions([
                 BulkActionGroup::make([

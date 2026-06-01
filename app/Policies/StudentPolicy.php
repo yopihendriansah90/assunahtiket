@@ -29,12 +29,20 @@ class StudentPolicy
 
     public function update(AuthUser $authUser, Student $student): bool
     {
-        return $authUser->can('Update:Student');
+        if (! $authUser->can('Update:Student')) {
+            return false;
+        }
+
+        return $this->canMutateStudent($authUser, $student);
     }
 
     public function delete(AuthUser $authUser, Student $student): bool
     {
-        return $authUser->can('Delete:Student');
+        if (! $authUser->can('Delete:Student')) {
+            return false;
+        }
+
+        return $this->canMutateStudent($authUser, $student);
     }
 
     public function deleteAny(AuthUser $authUser): bool
@@ -70,6 +78,15 @@ class StudentPolicy
     public function reorder(AuthUser $authUser): bool
     {
         return $authUser->can('Reorder:Student');
+    }
+
+    protected function canMutateStudent(AuthUser $authUser, Student $student): bool
+    {
+        if ($authUser->hasRole('super_admin')) {
+            return true;
+        }
+
+        return $student->event?->isLocked() !== true;
     }
 
 }

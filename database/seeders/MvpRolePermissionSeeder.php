@@ -20,44 +20,57 @@ class MvpRolePermissionSeeder extends Seeder
             Permission::query()->pluck('name')->all(),
         );
 
-        $this->syncRolePermissions('event_admin', [
-            'ViewAny:Event',
-            'View:Event',
+        $this->syncRolePermissionsBySubjects('event_admin', [
+            'Event',
+            'EventClass',
+            'Student',
+            'EventGate',
+        ]);
+
+        $this->syncRolePermissionsBySubjects('pic_sekolah', [
+            'Event',
+            'Student',
+        ], [
             'Create:Event',
             'Update:Event',
             'Delete:Event',
             'DeleteAny:Event',
-            'ViewAny:EventClass',
-            'View:EventClass',
             'Create:EventClass',
             'Update:EventClass',
             'Delete:EventClass',
             'DeleteAny:EventClass',
+            'Create:EventGate',
+            'Update:EventGate',
+            'Delete:EventGate',
+            'DeleteAny:EventGate',
         ]);
 
-        $this->syncRolePermissions('pic_sekolah', [
-            'ViewAny:Event',
-            'View:Event',
-            'ViewAny:Student',
-            'View:Student',
+        $this->syncRolePermissionsBySubjects('helper_desk', [
+            'Event',
+            'Student',
+        ], [
+            'Create:Event',
+            'Update:Event',
+            'Delete:Event',
+            'DeleteAny:Event',
             'Create:Student',
             'Update:Student',
             'Delete:Student',
             'DeleteAny:Student',
         ]);
 
-        $this->syncRolePermissions('helper_desk', [
-            'ViewAny:Event',
-            'View:Event',
-            'ViewAny:Student',
-            'View:Student',
-        ]);
-
-        $this->syncRolePermissions('checkin_officer', [
-            'ViewAny:Event',
-            'View:Event',
-            'ViewAny:Student',
-            'View:Student',
+        $this->syncRolePermissionsBySubjects('checkin_officer', [
+            'Event',
+            'Student',
+        ], [
+            'Create:Event',
+            'Update:Event',
+            'Delete:Event',
+            'DeleteAny:Event',
+            'Create:Student',
+            'Update:Student',
+            'Delete:Student',
+            'DeleteAny:Student',
         ]);
 
         User::query()
@@ -117,5 +130,37 @@ class MvpRolePermissionSeeder extends Seeder
             ->get();
 
         $role->syncPermissions($permissions);
+    }
+
+    private function syncRolePermissionsBySubjects(string $roleName, array $subjects, array $exclude = []): void
+    {
+        $permissionNames = Permission::query()
+            ->pluck('name')
+            ->filter(function (string $permissionName) use ($subjects, $exclude): bool {
+                foreach ($subjects as $subject) {
+                    if (
+                        str_starts_with($permissionName, 'View:' . $subject)
+                        || str_starts_with($permissionName, 'ViewAny:' . $subject)
+                        || str_starts_with($permissionName, 'Create:' . $subject)
+                        || str_starts_with($permissionName, 'Update:' . $subject)
+                        || str_starts_with($permissionName, 'Delete:' . $subject)
+                        || str_starts_with($permissionName, 'DeleteAny:' . $subject)
+                        || str_starts_with($permissionName, 'Restore:' . $subject)
+                        || str_starts_with($permissionName, 'RestoreAny:' . $subject)
+                        || str_starts_with($permissionName, 'ForceDelete:' . $subject)
+                        || str_starts_with($permissionName, 'ForceDeleteAny:' . $subject)
+                        || str_starts_with($permissionName, 'Replicate:' . $subject)
+                        || str_starts_with($permissionName, 'Reorder:' . $subject)
+                    ) {
+                        return ! in_array($permissionName, $exclude, true);
+                    }
+                }
+
+                return false;
+            })
+            ->values()
+            ->all();
+
+        $this->syncRolePermissions($roleName, $permissionNames);
     }
 }

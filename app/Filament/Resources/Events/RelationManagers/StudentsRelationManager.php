@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\Events\RelationManagers;
 
+use App\Filament\Actions\DownloadStudentTicketQrAction;
 use App\Models\Student;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\CreateAction;
@@ -209,6 +210,7 @@ class StudentsRelationManager extends RelationManager
                 ),
             ])
             ->recordActions([
+                DownloadStudentTicketQrAction::make(),
                 ...(
                     $isLocked && ! $canBypassLock
                         ? []

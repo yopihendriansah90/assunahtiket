@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\Students\Tables;
 
+use App\Filament\Actions\DownloadStudentTicketQrAction;
 use App\Models\Student;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteBulkAction;
@@ -104,6 +105,7 @@ class StudentsTable
                     ]),
             ])
             ->recordActions([
+                DownloadStudentTicketQrAction::make(),
                 EditAction::make()
                     ->label('Ubah')
                     ->visible(fn (Student $record): bool => ! $record->event?->isLocked() || $canBypassLock),

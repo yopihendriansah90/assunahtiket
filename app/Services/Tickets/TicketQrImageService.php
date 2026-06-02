@@ -19,6 +19,10 @@ class TicketQrImageService
 {
     private string $disk = 'public';
 
+    private const QR_LABEL_HEADER_HEIGHT = 72;
+
+    private const QR_LABEL_FONT = '/usr/share/fonts/truetype/msttcorefonts/Arial.ttf';
+
     public function ensureTicketForStudent(Student $student, ?User $generatedBy = null): Ticket
     {
         $student->loadMissing(['event.settings']);
@@ -68,6 +72,7 @@ class TicketQrImageService
 
         try {
             (new QRCode($options))->render($this->qrPayload($ticket), $absolutePath);
+            $this->addTicketCodeLabelToQrImage($absolutePath, $ticket->ticket_code);
         } catch (\Throwable $throwable) {
             throw new RuntimeException('QR JPG gagal dibuat: ' . $throwable->getMessage(), previous: $throwable);
         }
@@ -149,5 +154,61 @@ class TicketQrImageService
         } while (Ticket::query()->where('qr_token', $token)->exists());
 
         return $token;
+    }
+
+    protected function addTicketCodeLabelToQrImage(string $absolutePath, ?string $ticketCode): void
+    {
+        if (! function_exists('imagecreatefromjpeg') || ! function_exists('imagecreatetruecolor') || ! function_exists('imagestring')) {
+            throw new RuntimeException('Ekstensi GD tidak tersedia untuk menambahkan label QR.');
+        }
+
+        $sourceImage = imagecreatefromjpeg($absolutePath);
+
+        if (! $sourceImage) {
+            throw new RuntimeException('Gagal membuka file QR JPG untuk menambahkan label.');
+        }
+
+        $sourceWidth = imagesx($sourceImage);
+        $sourceHeight = imagesy($sourceImage);
+        $headerHeight = self::QR_LABEL_HEADER_HEIGHT;
+
+        $targetImage = imagecreatetruecolor($sourceWidth, $sourceHeight + $headerHeight);
+
+        if (! $targetImage) {
+            imagedestroy($sourceImage);
+
+            throw new RuntimeException('Gagal membuat canvas QR baru.');
+        }
+
+        $white = imagecolorallocate($targetImage, 255, 255, 255);
+        $black = imagecolorallocate($targetImage, 18, 24, 38);
+
+        imagefill($targetImage, 0, 0, $white);
+        imagecopy($targetImage, $sourceImage, 0, $headerHeight, 0, 0, $sourceWidth, $sourceHeight);
+
+        $label = trim((string) $ticketCode);
+        $fontFile = is_file(self::QR_LABEL_FONT) ? self::QR_LABEL_FONT : null;
+
+        if ($fontFile && function_exists('imagettfbbox') && function_exists('imagettftext')) {
+            $fontSize = 18;
+            $bbox = imagettfbbox($fontSize, 0, $fontFile, $label !== '' ? $label : '-');
+            $textWidth = abs($bbox[4] - $bbox[0]);
+            $textHeight = abs($bbox[5] - $bbox[1]);
+            $labelX = (int) max(12, floor(($sourceWidth - $textWidth) / 2));
+            $baselineY = (int) (($headerHeight - $textHeight) / 2) + $textHeight;
+
+            imagettftext($targetImage, $fontSize, 0, $labelX, $baselineY, $black, $fontFile, $label !== '' ? $label : '-');
+        } else {
+            $labelWidth = strlen($label) * imagefontwidth(5);
+            $labelX = max(12, (int) floor(($sourceWidth - $labelWidth) / 2));
+            $labelY = 24;
+
+            imagestring($targetImage, 5, $labelX, $labelY, $label !== '' ? $label : '-', $black);
+        }
+
+        imagejpeg($targetImage, $absolutePath, 92);
+
+        imagedestroy($sourceImage);
+        imagedestroy($targetImage);
     }
 }

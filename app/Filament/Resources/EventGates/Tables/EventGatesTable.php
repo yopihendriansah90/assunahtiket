@@ -27,6 +27,11 @@ class EventGatesTable
                 TextColumn::make('code')
                     ->label('Kode')
                     ->toggleable(),
+                TextColumn::make('assignedUsers.name')
+                    ->label('Gate Officer')
+                    ->badge()
+                    ->listWithLineBreaks()
+                    ->toggleable(),
                 IconColumn::make('is_active')
                     ->boolean()
                     ->label('Aktif')

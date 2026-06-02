@@ -56,6 +56,16 @@ class User extends Authenticatable implements FilamentUser
         return $this->belongsToMany(EventClass::class, 'event_class_user_assignments');
     }
 
+    public function eventGates(): BelongsToMany
+    {
+        return $this->belongsToMany(EventGate::class, 'event_gate_assignments')->withTimestamps();
+    }
+
+    public function canAccessGateDashboard(): bool
+    {
+        return $this->hasRole('super_admin') || $this->hasRole('checkin_officer');
+    }
+
     public function canAccessPanel(Panel $panel): bool
     {
         if ($this->hasRole('super_admin')) {

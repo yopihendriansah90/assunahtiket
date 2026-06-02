@@ -28,4 +28,19 @@ class Checkin extends Model
     {
         return $this->belongsTo(Ticket::class);
     }
+
+    public function event(): BelongsTo
+    {
+        return $this->belongsTo(Event::class);
+    }
+
+    public function gate(): BelongsTo
+    {
+        return $this->belongsTo(EventGate::class, 'event_gate_id');
+    }
+
+    public function user(): BelongsTo
+    {
+        return $this->belongsTo(User::class);
+    }
 }

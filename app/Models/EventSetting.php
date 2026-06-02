@@ -17,6 +17,7 @@ class EventSetting extends Model
     protected function casts(): array
     {
         return [
+            'ticket_sequence_start' => 'integer',
             'settings' => 'array',
         ];
     }

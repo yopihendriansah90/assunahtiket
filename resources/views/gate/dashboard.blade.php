@@ -7,9 +7,16 @@
         $scanTicket = data_get($scanResult, 'ticket');
         $scanCheckin = data_get($scanResult, 'checkin');
         $scanStatus = data_get($scanResult, 'status');
+        $gateStats = $gateStats ?? [
+            'total_hadir' => 0,
+            'belum_scan' => 0,
+            'sudah_scan' => 0,
+            'ditolak' => 0,
+        ];
+        $recentScans = $recentScans ?? collect();
     @endphp
 
-    <div class="card">
+    <div class="card" id="gate-dashboard" data-stats-url="{{ route('gate.stats', ['gate' => $activeGate?->id]) }}">
         <div class="topbar">
             <div>
                 <h1>Dashboard Gate</h1>
@@ -130,80 +137,68 @@
                     <section class="panel">
                         <div class="panel-header">
                             <h2>Hasil Scan</h2>
-                            <span class="badge {{ $scanResult ? ($scanStatus === 'success' ? 'badge-success' : 'badge-warning') : 'badge-warning' }}">
+                            <span id="scan-status-badge" class="badge {{ $scanResult ? ($scanStatus === 'success' ? 'badge-success' : 'badge-warning') : 'badge-warning' }}">
                                 {{ $scanResult ? ($scanStatus === 'success' ? 'Berhasil' : ($scanStatus === 'already_scanned' ? 'Sudah Scan' : 'Tidak Ditemukan')) : 'Siap scan' }}
                             </span>
                         </div>
                         <div class="panel-body">
-                            @if ($scanResult)
-                                <div class="result-banner {{ $scanStatus === 'success' ? '' : 'is-empty' }}">
-                                    <div class="result-check">
-                                        {{ $scanStatus === 'success' ? '✓' : '!' }}
-                                    </div>
-                                    <div>
-                                        <p class="result-title">
-                                            {{ $scanStatus === 'success' ? 'VALID' : 'INFO' }}
-                                        </p>
-                                        <p class="result-subtitle">
-                                            {{ data_get($scanResult, 'message', 'Hasil scan ditampilkan di bawah.') }}
-                                        </p>
-                                    </div>
+                            <div id="scan-result-banner" class="result-banner {{ $scanResult && $scanStatus === 'success' ? '' : 'is-empty' }}">
+                                <div id="scan-result-icon" class="result-check">
+                                    {{ $scanResult ? ($scanStatus === 'success' ? '✓' : '!') : '⌁' }}
                                 </div>
-                            @else
-                                <div class="result-banner is-empty">
-                                    <div class="result-check" style="background: rgba(15, 23, 42, 0.06); color: #334155;">⌁</div>
-                                    <div>
-                                        <p class="result-title" style="font-size: 24px; margin-bottom: 4px;">Menunggu QR</p>
-                                        <p class="result-subtitle" style="margin-top: 0;">
-                                            Setelah QR terbaca, check-in dibuat otomatis dan hasilnya muncul di sini.
-                                        </p>
-                                    </div>
+                                <div>
+                                    <p id="scan-result-title" class="result-title">
+                                        {{ $scanResult ? ($scanStatus === 'success' ? 'VALID' : 'INFO') : 'Menunggu QR' }}
+                                    </p>
+                                    <p id="scan-result-message" class="result-subtitle" style="{{ $scanResult ? '' : 'margin-top: 0;' }}">
+                                        {{ data_get($scanResult, 'message', 'Setelah QR terbaca, check-in dibuat otomatis dan hasilnya muncul di sini.') }}
+                                    </p>
                                 </div>
-                            @endif
+                            </div>
 
                             <div class="details-list">
                                 <div class="detail-row">
                                     <div class="detail-label">Nama Peserta</div>
-                                    <div class="detail-value">{{ $scanTicket?->student?->name ?? '-' }}</div>
+                                    <div class="detail-value" data-scan-field="student_name">{{ $scanTicket?->student?->name ?? '-' }}</div>
                                 </div>
                                 <div class="detail-row">
                                     <div class="detail-label">Kelas</div>
-                                    <div class="detail-value">{{ $scanTicket?->student?->eventClass?->name ?? '-' }}</div>
+                                    <div class="detail-value" data-scan-field="student_class">{{ $scanTicket?->student?->eventClass?->name ?? '-' }}</div>
                                 </div>
                                 <div class="detail-row">
                                     <div class="detail-label">Kode Tiket</div>
-                                    <div class="detail-value">{{ $scanTicket?->ticket_code ?? '-' }}</div>
+                                    <div class="detail-value" data-scan-field="ticket_code">{{ $scanTicket?->ticket_code ?? '-' }}</div>
                                 </div>
                                 <div class="detail-row">
                                     <div class="detail-label">QR Token</div>
-                                    <div class="detail-value">{{ $scanTicket?->qr_token ?? '-' }}</div>
+                                    <div class="detail-value" data-scan-field="qr_token">{{ $scanTicket?->qr_token ?? '-' }}</div>
                                 </div>
                                 <div class="detail-row">
                                     <div class="detail-label">Gate</div>
-                                    <div class="detail-value">{{ data_get($scanResult, 'gate_name', $activeGate->name) }}</div>
+                                    <div class="detail-value" data-scan-field="gate_name">{{ data_get($scanResult, 'gate_name', $activeGate->name) }}</div>
                                 </div>
                                 <div class="detail-row">
                                     <div class="detail-label">Status</div>
                                     <div class="detail-value">
                                         @if ($scanResult)
-                                            <span class="badge {{ $scanStatus === 'success' ? 'badge-success' : 'badge-warning' }}">
+                                            <span id="scan-result-badge" class="badge {{ $scanStatus === 'success' ? 'badge-success' : 'badge-warning' }}">
                                                 {{ $scanStatus === 'success' ? 'Check-in berhasil' : ($scanStatus === 'already_scanned' ? 'Sudah check-in' : 'Tidak ditemukan') }}
                                             </span>
                                         @else
-                                            <span class="badge badge-warning">Menunggu Scan</span>
+                                            <span id="scan-result-badge" class="badge badge-warning">Menunggu Scan</span>
                                         @endif
                                     </div>
                                 </div>
                                 <div class="detail-row">
                                     <div class="detail-label">Waktu Check-in</div>
                                     <div class="detail-value">
-                                        {{ $scanCheckin?->checked_in_at?->format('d/m/Y H:i:s') ?? '-' }}
+                                        <span data-scan-field="checked_in_at">{{ $scanCheckin?->checked_in_at?->format('d/m/Y H:i:s') ?? '-' }}</span>
                                     </div>
                                 </div>
                                 <div class="detail-row">
                                     <div class="detail-label">Metode Scan</div>
                                     <div class="detail-value">
-                                        {{ $scanCheckin?->scan_method ?? '-' }}
+                                        <span data-scan-field="scan_method">{{ $scanCheckin?->scan_method ?? '-' }}</span>
                                     </div>
                                 </div>
                             </div>
@@ -221,7 +216,7 @@
                             </div>
                             <div>
                                 <p class="stat-label">Total Hadir</p>
-                                <p class="stat-value">0</p>
+                                <p class="stat-value" data-stat-key="total_hadir">{{ $gateStats['total_hadir'] }}</p>
                             </div>
                         </div>
                         <div class="stat-card">
@@ -233,7 +228,7 @@
                             </div>
                             <div>
                                 <p class="stat-label">Belum Scan</p>
-                                <p class="stat-value">0</p>
+                                <p class="stat-value" data-stat-key="belum_scan">{{ $gateStats['belum_scan'] }}</p>
                             </div>
                         </div>
                         <div class="stat-card">
@@ -245,7 +240,7 @@
                             </div>
                             <div>
                                 <p class="stat-label">Sudah Scan</p>
-                                <p class="stat-value">0</p>
+                                <p class="stat-value" data-stat-key="sudah_scan">{{ $gateStats['sudah_scan'] }}</p>
                             </div>
                         </div>
                         <div class="stat-card">
@@ -257,7 +252,7 @@
                             </div>
                             <div>
                                 <p class="stat-label">Ditolak</p>
-                                <p class="stat-value">0</p>
+                                <p class="stat-value" data-stat-key="ditolak">{{ $gateStats['ditolak'] }}</p>
                             </div>
                         </div>
                     </aside>
@@ -280,12 +275,25 @@
                                                 <th>Status</th>
                                             </tr>
                                         </thead>
-                                        <tbody>
-                                            <tr>
-                                                <td colspan="4" style="text-align: center; color: var(--muted); padding: 24px;">
-                                                    Belum ada riwayat scan.
-                                                </td>
-                                            </tr>
+                        <tbody id="recent-scans-body">
+                            @forelse ($recentScans as $scan)
+                                <tr>
+                                    <td>{{ $scan->checked_in_at?->format('H:i:s') ?? '-' }}</td>
+                                    <td>{{ $scan->ticket?->student?->name ?? '-' }}</td>
+                                                    <td>{{ $scan->ticket?->ticket_code ?? '-' }}</td>
+                                                    <td>
+                                                        <span class="badge badge-success">
+                                                            {{ ucfirst($scan->scan_method ?? 'qr') }}
+                                                        </span>
+                                                    </td>
+                                                </tr>
+                                            @empty
+                                                <tr>
+                                                    <td colspan="4" style="text-align: center; color: var(--muted); padding: 24px;">
+                                                        Belum ada riwayat scan.
+                                                    </td>
+                                                </tr>
+                                            @endforelse
                                         </tbody>
                                     </table>
                                 </div>
@@ -320,9 +328,18 @@
             (() => {
                 const input = document.getElementById('q');
                 const form = document.getElementById('gate-scan-form');
+                const dashboard = document.getElementById('gate-dashboard');
+                const recentScansBody = document.getElementById('recent-scans-body');
+                const scanStatusBadge = document.getElementById('scan-status-badge');
+                const scanResultBadge = document.getElementById('scan-result-badge');
+                const scanResultBanner = document.getElementById('scan-result-banner');
+                const scanResultIcon = document.getElementById('scan-result-icon');
+                const scanResultTitle = document.getElementById('scan-result-title');
+                const scanResultMessage = document.getElementById('scan-result-message');
                 const enterButton = document.getElementById('gate-scan-mode-enter');
                 const autoButton = document.getElementById('gate-scan-mode-auto');
                 const modeKey = 'gate.scan.mode';
+                const recentScansUrl = '{{ route('gate.recent-scans', ['gate' => $activeGate->id]) }}';
                 let submitTimer = null;
                 let mode = localStorage.getItem(modeKey) || 'enter';
 
@@ -345,6 +362,93 @@
                     }
 
                     form.requestSubmit();
+                };
+
+                const setScanField = (key, value) => {
+                    document.querySelectorAll(`[data-scan-field="${key}"]`).forEach((node) => {
+                        node.textContent = value ?? '-';
+                    });
+                };
+
+                const applyScanResult = (payload) => {
+                    const result = payload?.scanResult || {};
+                    const ticket = result.ticket || null;
+                    const checkin = result.checkin || null;
+                    const status = result.status || 'missing';
+
+                    if (scanStatusBadge) {
+                        scanStatusBadge.textContent = status === 'success'
+                            ? 'Berhasil'
+                            : status === 'already_scanned'
+                                ? 'Sudah Scan'
+                                : 'Tidak Ditemukan';
+                        scanStatusBadge.classList.remove('badge-success', 'badge-warning');
+                        scanStatusBadge.classList.add(status === 'success' ? 'badge-success' : 'badge-warning');
+                    }
+
+                    if (scanResultBadge) {
+                        scanResultBadge.textContent = status === 'success'
+                            ? 'Check-in berhasil'
+                            : status === 'already_scanned'
+                                ? 'Sudah check-in'
+                                : 'Tidak ditemukan';
+                        scanResultBadge.classList.remove('badge-success', 'badge-warning');
+                        scanResultBadge.classList.add(status === 'success' ? 'badge-success' : 'badge-warning');
+                    }
+
+                    if (scanResultBanner) {
+                        scanResultBanner.classList.toggle('is-empty', status !== 'success');
+                    }
+
+                    if (scanResultIcon) {
+                        scanResultIcon.textContent = status === 'success' ? '✓' : '!';
+                    }
+
+                    if (scanResultTitle) {
+                        scanResultTitle.textContent = status === 'success'
+                            ? 'VALID'
+                            : 'INFO';
+                    }
+
+                    if (scanResultMessage) {
+                        scanResultMessage.textContent = result.message || 'Hasil scan ditampilkan di bawah.';
+                    }
+
+                    setScanField('student_name', ticket?.name ?? '-');
+                    setScanField('student_class', ticket?.class ?? '-');
+                    setScanField('ticket_code', ticket?.ticket_code ?? '-');
+                    setScanField('qr_token', ticket?.qr_token ?? '-');
+                    setScanField('gate_name', result.gate_name ?? '-');
+                    setScanField('checked_in_at', checkin?.checked_in_at ?? '-');
+                    setScanField('scan_method', checkin?.scan_method ?? '-');
+
+                    if (payload?.gateStats) {
+                        Object.entries(payload.gateStats).forEach(([key, value]) => {
+                            const node = dashboard.querySelector(`[data-stat-key="${key}"]`);
+                            if (node) {
+                                node.textContent = String(value ?? 0);
+                            }
+                        });
+                    }
+
+                    if (Array.isArray(payload?.recentScans) && recentScansBody) {
+                        if (payload.recentScans.length === 0) {
+                            recentScansBody.innerHTML = '<tr><td colspan="4" style="text-align:center;color:var(--muted);padding:24px;">Belum ada riwayat scan.</td></tr>';
+                        } else {
+                            recentScansBody.innerHTML = payload.recentScans.map((scan) => `
+                                <tr>
+                                    <td>${scan.time ?? '-'}</td>
+                                    <td>${scan.student ?? '-'}</td>
+                                    <td>${scan.ticket_code ?? '-'}</td>
+                                    <td><span class="badge badge-success">${scan.status ?? 'Qr'}</span></td>
+                                </tr>
+                            `).join('');
+                        }
+                    }
+
+                    input.value = '';
+                    input.focus();
+                    input.select();
                 };
 
                 enterButton?.addEventListener('click', () => {
@@ -380,13 +484,123 @@
                     }, 350);
                 });
 
-                form.addEventListener('submit', () => {
+                form.addEventListener('submit', async (event) => {
+                    event.preventDefault();
                     clearTimeout(submitTimer);
+
+                    if (input.value.trim() === '') {
+                        input.focus();
+                        return;
+                    }
+
+                    try {
+                        const response = await fetch(form.action, {
+                            method: 'POST',
+                            headers: {
+                                'Accept': 'application/json',
+                                'X-Requested-With': 'XMLHttpRequest',
+                            },
+                            body: new FormData(form),
+                            credentials: 'same-origin',
+                        });
+
+                        if (! response.ok) {
+                            return;
+                        }
+
+                        const payload = await response.json();
+                        applyScanResult(payload);
+                    } catch (error) {
+                        // ignore polling errors
+                    }
                 });
 
                 syncMode();
                 input.focus();
                 input.select();
+
+                const refreshStats = async () => {
+                    if (! dashboard) {
+                        return;
+                    }
+
+                    const statsUrl = dashboard.getAttribute('data-stats-url');
+
+                    if (! statsUrl) {
+                        return;
+                    }
+
+                    try {
+                        const response = await fetch(statsUrl, {
+                            headers: {
+                                'Accept': 'application/json',
+                                'X-Requested-With': 'XMLHttpRequest',
+                            },
+                            credentials: 'same-origin',
+                        });
+
+                        if (! response.ok) {
+                            return;
+                        }
+
+                        const payload = await response.json();
+                        const stats = payload.stats || {};
+
+                        Object.entries(stats).forEach(([key, value]) => {
+                            const node = dashboard.querySelector(`[data-stat-key="${key}"]`);
+                            if (node) {
+                                node.textContent = String(value ?? 0);
+                            }
+                        });
+                    } catch (error) {
+                        // ignore polling errors
+                    }
+                };
+
+                refreshStats();
+                window.setInterval(refreshStats, 5000);
+
+                const refreshRecentScans = async () => {
+                    if (! recentScansBody) {
+                        return;
+                    }
+
+                    try {
+                        const response = await fetch(recentScansUrl, {
+                            headers: {
+                                'Accept': 'application/json',
+                                'X-Requested-With': 'XMLHttpRequest',
+                            },
+                            credentials: 'same-origin',
+                        });
+
+                        if (! response.ok) {
+                            return;
+                        }
+
+                        const payload = await response.json();
+                        const scans = Array.isArray(payload.scans) ? payload.scans : [];
+
+                        if (scans.length === 0) {
+                            recentScansBody.innerHTML = '<tr><td colspan="4" style="text-align:center;color:var(--muted);padding:24px;">Belum ada riwayat scan.</td></tr>';
+                            return;
+                        }
+
+                        recentScansBody.innerHTML = scans.map((scan) => `
+                            <tr>
+                                <td>${scan.time ?? '-'}</td>
+                                <td>${scan.student ?? '-'}</td>
+                                <td>${scan.ticket_code ?? '-'}</td>
+                                <td><span class="badge badge-success">${scan.status ?? 'Qr'}</span></td>
+                            </tr>
+                        `).join('');
+                    } catch (error) {
+                        // ignore polling errors
+                    }
+                };
+
+                refreshRecentScans();
+                window.setInterval(refreshRecentScans, 5000);
             })();
         </script>
     @endpush

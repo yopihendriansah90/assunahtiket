@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Checkin;
 use App\Models\EventGate;
+use App\Models\Student;
 use App\Models\Ticket;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\DB;
@@ -11,6 +12,7 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\ValidationException;
+use Illuminate\Http\JsonResponse;
 use Illuminate\View\View;
 use Illuminate\Support\Str;
 
@@ -86,15 +88,20 @@ class GateAuthController extends Controller
             }
         }
 
+        $gateStats = $this->buildGateStats($selectedGate);
+        $recentScans = $this->buildRecentScans($selectedGate);
+
         return view('gate.dashboard', [
             'user' => $user,
             'gates' => $gates,
             'selectedGate' => $selectedGate,
             'scanResult' => $scanResult,
+            'gateStats' => $gateStats,
+            'recentScans' => $recentScans,
         ]);
     }
 
-    public function scan(Request $request): RedirectResponse
+    public function scan(Request $request): RedirectResponse|JsonResponse
     {
         $user = $request->user();
 
@@ -193,6 +200,18 @@ class GateAuthController extends Controller
             ];
         });
 
+        if ($request->expectsJson()) {
+            $scanPayload = $this->resolveScanPayload($scanResult);
+            $gateStats = $this->buildGateStats($gate);
+            $recentScans = $this->buildRecentScans($gate);
+
+            return response()->json([
+                'scanResult' => $scanPayload,
+                'gateStats' => $gateStats,
+                'recentScans' => $this->formatRecentScans($recentScans),
+            ]);
+        }
+
         return redirect()
             ->route('gate.dashboard', ['gate' => $gate->getKey()])
             ->withInput(['q' => $rawQuery])
@@ -209,6 +228,51 @@ class GateAuthController extends Controller
         return redirect()->route('gate.login');
     }
 
+    public function stats(Request $request): JsonResponse
+    {
+        $user = $request->user();
+        $gates = $this->accessibleGatesQuery($user)->get();
+
+        if ($gates->isEmpty()) {
+            return response()->json([
+                'gate_id' => null,
+                'stats' => $this->buildGateStats(null),
+            ]);
+        }
+
+        $selectedGateId = $request->integer('gate');
+        $selectedGate = $gates->firstWhere('id', $selectedGateId) ?? $gates->first();
+
+        return response()->json([
+            'gate_id' => $selectedGate->getKey(),
+            'stats' => $this->buildGateStats($selectedGate),
+        ]);
+    }
+
+    public function recentScans(Request $request): JsonResponse
+    {
+        $user = $request->user();
+        $gates = $this->accessibleGatesQuery($user)->get();
+
+        if ($gates->isEmpty()) {
+            return response()->json([
+                'gate_id' => null,
+                'scans' => [],
+            ]);
+        }
+
+        $selectedGateId = $request->integer('gate');
+        $selectedGate = $gates->firstWhere('id', $selectedGateId) ?? $gates->first();
+
+        $scans = $this->buildRecentScans($selectedGate)
+            ->values();
+
+        return response()->json([
+            'gate_id' => $selectedGate->getKey(),
+            'scans' => $this->formatRecentScans($scans),
+        ]);
+    }
+
     private function accessibleGatesQuery($user): Builder
     {
         $query = EventGate::query()->with(['event', 'assignedUsers']);
@@ -223,5 +287,104 @@ class GateAuthController extends Controller
             })
             ->orderBy('event_id')
             ->orderBy('name');
+    }
+
+    private function buildGateStats(?EventGate $selectedGate): array
+    {
+        if (! $selectedGate) {
+            return [
+                'total_hadir' => 0,
+                'belum_scan' => 0,
+                'sudah_scan' => 0,
+                'ditolak' => 0,
+            ];
+        }
+
+        $eventId = $selectedGate->event_id;
+
+        $totalStudents = Student::query()
+            ->where('event_id', $eventId)
+            ->count();
+
+        $successfulCheckins = Checkin::query()
+            ->where('event_id', $eventId)
+            ->where('event_gate_id', $selectedGate->getKey())
+            ->count();
+
+        $uniqueCheckedTickets = Checkin::query()
+            ->where('event_id', $eventId)
+            ->where('event_gate_id', $selectedGate->getKey())
+            ->distinct('ticket_id')
+            ->count('ticket_id');
+
+        $rejectedTickets = Ticket::query()
+            ->where('event_id', $eventId)
+            ->whereIn('status', ['revoked', 'cancelled'])
+            ->count();
+
+        return [
+            'total_hadir' => $uniqueCheckedTickets,
+            'belum_scan' => max($totalStudents - $uniqueCheckedTickets, 0),
+            'sudah_scan' => $successfulCheckins,
+            'ditolak' => $rejectedTickets,
+        ];
+    }
+
+    private function buildRecentScans(?EventGate $selectedGate)
+    {
+        if (! $selectedGate) {
+            return collect();
+        }
+
+        return Checkin::query()
+            ->with(['ticket.student', 'ticket.student.eventClass'])
+            ->where('event_id', $selectedGate->event_id)
+            ->where('event_gate_id', $selectedGate->getKey())
+            ->latest('checked_in_at')
+            ->limit(10)
+            ->get();
+    }
+
+    private function formatRecentScans($scans): array
+    {
+        return collect($scans)
+            ->map(function (Checkin $scan): array {
+                return [
+                    'time' => $scan->checked_in_at?->format('H:i:s') ?? '-',
+                    'student' => $scan->ticket?->student?->name ?? '-',
+                    'ticket_code' => $scan->ticket?->ticket_code ?? '-',
+                    'status' => ucfirst($scan->scan_method ?? 'qr'),
+                ];
+            })
+            ->values()
+            ->all();
+    }
+
+    private function resolveScanPayload(array $scanResult): array
+    {
+        $ticket = filled($scanResult['ticket_id'] ?? null)
+            ? Ticket::query()->with(['student.eventClass', 'event', 'latestCheckin'])->find($scanResult['ticket_id'])
+            : null;
+
+        $checkin = filled($scanResult['checkin_id'] ?? null)
+            ? Checkin::query()->find($scanResult['checkin_id'])
+            : null;
+
+        return [
+            'status' => $scanResult['status'] ?? 'missing',
+            'message' => $scanResult['message'] ?? '',
+            'gate_name' => $scanResult['gate_name'] ?? null,
+            'gate_code' => $scanResult['gate_code'] ?? null,
+            'ticket' => $ticket ? [
+                'name' => $ticket->student?->name ?? '-',
+                'class' => $ticket->student?->eventClass?->name ?? '-',
+                'ticket_code' => $ticket->ticket_code,
+                'qr_token' => $ticket->qr_token,
+            ] : null,
+            'checkin' => $checkin ? [
+                'checked_in_at' => $checkin->checked_in_at?->format('d/m/Y H:i:s'),
+                'scan_method' => $checkin->scan_method,
+            ] : null,
+        ];
     }
 }

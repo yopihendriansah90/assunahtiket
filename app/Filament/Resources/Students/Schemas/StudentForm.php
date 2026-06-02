@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\Students\Schemas;
 
+use App\Models\Student;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Filament\Schemas\Components\Utilities\Get;
@@ -70,10 +71,7 @@ class StudentForm
                         };
                     }),
                 Select::make('gender')
-                    ->options([
-                        'male' => 'Laki-laki',
-                        'female' => 'Perempuan',
-                    ])
+                    ->options(Student::genderOptions())
                     ->label('Jenis Kelamin')
                     ->nullable(),
                 TextInput::make('mother_name')

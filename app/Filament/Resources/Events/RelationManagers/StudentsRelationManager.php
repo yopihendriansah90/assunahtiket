@@ -112,10 +112,7 @@ class StudentsRelationManager extends RelationManager
                     }),
                 Select::make('gender')
                     ->label('Jenis Kelamin')
-                    ->options([
-                        'male' => 'Laki-laki',
-                        'female' => 'Perempuan',
-                    ])
+                    ->options(Student::genderOptions())
                     ->required()
                     ->disabled($isLocked && ! $canBypassLock),
                 Select::make('status')
@@ -182,11 +179,7 @@ class StudentsRelationManager extends RelationManager
                     ->searchable(),
                 TextColumn::make('gender')
                     ->label('Jenis Kelamin')
-                    ->formatStateUsing(fn (string $state): string => match ($state) {
-                        'male' => 'Laki-laki',
-                        'female' => 'Perempuan',
-                        default => $state,
-                    })
+                    ->formatStateUsing(fn (?string $state): string => Student::genderLabel($state))
                     ->badge(),
                 SelectColumn::make('status')
                     ->label('Status')
@@ -206,10 +199,7 @@ class StudentsRelationManager extends RelationManager
                     ->preload(),
                 SelectFilter::make('gender')
                     ->label('Jenis Kelamin')
-                    ->options([
-                        'male' => 'Laki-laki',
-                        'female' => 'Perempuan',
-                    ]),
+                    ->options(Student::genderOptions()),
                 SelectFilter::make('status')
                     ->label('Status')
                     ->options(self::statusOptions()),

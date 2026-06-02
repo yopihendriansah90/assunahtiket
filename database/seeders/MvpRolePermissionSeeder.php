@@ -15,6 +15,23 @@ class MvpRolePermissionSeeder extends Seeder
     {
         app(PermissionRegistrar::class)->forgetCachedPermissions();
 
+        foreach ([
+            'ViewAny:Checkin',
+            'View:Checkin',
+            'Create:Checkin',
+            'Update:Checkin',
+            'Delete:Checkin',
+            'DeleteAny:Checkin',
+            'Restore:Checkin',
+            'RestoreAny:Checkin',
+            'ForceDelete:Checkin',
+            'ForceDeleteAny:Checkin',
+            'Replicate:Checkin',
+            'Reorder:Checkin',
+        ] as $permissionName) {
+            Permission::findOrCreate($permissionName, 'web');
+        }
+
         $this->syncRolePermissions(
             'super_admin',
             Permission::query()->pluck('name')->all(),
@@ -25,11 +42,13 @@ class MvpRolePermissionSeeder extends Seeder
             'EventClass',
             'Student',
             'EventGate',
+            'Checkin',
         ]);
 
         $this->syncRolePermissionsBySubjects('pic_sekolah', [
             'Event',
             'Student',
+            'Checkin',
         ], [
             'Create:Event',
             'Update:Event',
@@ -43,11 +62,22 @@ class MvpRolePermissionSeeder extends Seeder
             'Update:EventGate',
             'Delete:EventGate',
             'DeleteAny:EventGate',
+            'Create:Checkin',
+            'Update:Checkin',
+            'Delete:Checkin',
+            'DeleteAny:Checkin',
+            'Restore:Checkin',
+            'RestoreAny:Checkin',
+            'ForceDelete:Checkin',
+            'ForceDeleteAny:Checkin',
+            'Replicate:Checkin',
+            'Reorder:Checkin',
         ]);
 
         $this->syncRolePermissionsBySubjects('helper_desk', [
             'Event',
             'Student',
+            'Checkin',
         ], [
             'Create:Event',
             'Update:Event',
@@ -57,11 +87,22 @@ class MvpRolePermissionSeeder extends Seeder
             'Update:Student',
             'Delete:Student',
             'DeleteAny:Student',
+            'Create:Checkin',
+            'Update:Checkin',
+            'Delete:Checkin',
+            'DeleteAny:Checkin',
+            'Restore:Checkin',
+            'RestoreAny:Checkin',
+            'ForceDelete:Checkin',
+            'ForceDeleteAny:Checkin',
+            'Replicate:Checkin',
+            'Reorder:Checkin',
         ]);
 
         $this->syncRolePermissionsBySubjects('checkin_officer', [
             'Event',
             'Student',
+            'Checkin',
         ], [
             'Create:Event',
             'Update:Event',
@@ -71,6 +112,16 @@ class MvpRolePermissionSeeder extends Seeder
             'Update:Student',
             'Delete:Student',
             'DeleteAny:Student',
+            'Create:Checkin',
+            'Update:Checkin',
+            'Delete:Checkin',
+            'DeleteAny:Checkin',
+            'Restore:Checkin',
+            'RestoreAny:Checkin',
+            'ForceDelete:Checkin',
+            'ForceDeleteAny:Checkin',
+            'Replicate:Checkin',
+            'Reorder:Checkin',
         ]);
 
         User::query()

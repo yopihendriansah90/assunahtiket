@@ -9,6 +9,10 @@ use Illuminate\Validation\ValidationException;
 
 class Student extends Model
 {
+    public const GENDER_MALE = 'male';
+
+    public const GENDER_FEMALE = 'female';
+
     protected $fillable = [
         'event_id',
         'class_id',
@@ -149,5 +153,26 @@ class Student extends Model
     public function ticket(): HasOne
     {
         return $this->hasOne(Ticket::class);
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    public static function genderOptions(): array
+    {
+        return [
+            self::GENDER_MALE => 'Laki-laki',
+            self::GENDER_FEMALE => 'Perempuan',
+        ];
+    }
+
+    public static function genderLabel(?string $gender): string
+    {
+        return self::genderOptions()[$gender] ?? '-';
+    }
+
+    public function getGenderLabelAttribute(): string
+    {
+        return self::genderLabel($this->gender);
     }
 }

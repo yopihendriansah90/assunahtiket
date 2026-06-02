@@ -57,6 +57,7 @@ class StudentsTable
                 TextColumn::make('gender')
                     ->badge()
                     ->label('Jenis Kelamin')
+                    ->formatStateUsing(fn (?string $state): string => Student::genderLabel($state))
                     ->toggleable(),
                 TextColumn::make('status')
                     ->badge()

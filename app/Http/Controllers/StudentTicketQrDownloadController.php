@@ -14,7 +14,7 @@ class StudentTicketQrDownloadController extends Controller
         $user = auth()->user();
 
         abort_unless($user !== null, 403);
-        abort_unless($user->can('Update:Student') || $user->hasRole('super_admin'), 403);
+        abort_unless($user->can('ViewAny:Student') || $user->hasRole('super_admin'), 403);
 
         $ticket = $student->ticket()->first();
 
@@ -25,8 +25,6 @@ class StudentTicketQrDownloadController extends Controller
                 ['Content-Type' => 'image/jpeg'],
             );
         }
-
-        abort_unless($user->can('Update:Student') || $user->hasRole('super_admin'), 403);
 
         $ticket = $service->ensureTicketForStudent($student, $user);
         $file = $service->ensureQrImageForTicket($ticket, $user);

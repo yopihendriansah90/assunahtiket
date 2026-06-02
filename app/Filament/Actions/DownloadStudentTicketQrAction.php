@@ -15,6 +15,6 @@ class DownloadStudentTicketQrAction
             ->icon(Heroicon::OutlinedQrCode)
             ->color('gray')
             ->url(fn (Student $record): string => route('students.ticket-qr.download', $record))
-            ->visible(fn (): bool => auth()->user()?->can('Update:Student') || auth()->user()?->hasRole('super_admin'));
+            ->visible(fn (): bool => auth()->user()?->can('ViewAny:Student') || auth()->user()?->hasRole('super_admin'));
     }
 }

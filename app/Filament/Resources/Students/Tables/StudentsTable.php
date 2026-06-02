@@ -4,6 +4,8 @@ namespace App\Filament\Resources\Students\Tables;
 
 use App\Filament\Actions\DownloadStudentTicketQrAction;
 use App\Models\Student;
+use App\Services\Tickets\TicketQrZipExportService;
+use Filament\Actions\BulkAction;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
@@ -112,6 +114,33 @@ class StudentsTable
             ])
             ->toolbarActions([
                 BulkActionGroup::make([
+                    BulkAction::make('downloadQrZip')
+                        ->label('Download QR ZIP')
+                        ->icon('heroicon-o-arrow-down-tray')
+                        ->color('gray')
+                        ->modalHeading('Download QR ZIP')
+                        ->modalSubmitActionLabel('Unduh ZIP')
+                        ->requiresConfirmation()
+                        ->action(function (BulkAction $action) {
+                            $user = auth()->user();
+
+                            if ($user === null) {
+                                abort(403);
+                            }
+
+                            $selectedRecords = $action->getSelectedRecords();
+                            $service = app(TicketQrZipExportService::class);
+
+                            $archiveBaseName = 'qr-tiket-selected-' . now()->format('Ymd-His');
+
+                            return response()
+                                ->download(
+                                    $service->exportStudents($selectedRecords, $user, $archiveBaseName),
+                                    strtoupper(str_replace('-', '_', $archiveBaseName)) . '.zip',
+                                )
+                                ->deleteFileAfterSend(true);
+                        })
+                        ->deselectRecordsAfterCompletion(),
                     DeleteBulkAction::make()->label('Hapus Terpilih'),
                 ]),
             ]);

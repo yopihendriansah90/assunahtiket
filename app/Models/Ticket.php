@@ -75,28 +75,52 @@ class Ticket extends Model
 
     public function qrFilePath(): string
     {
-        return sprintf('tickets/qr/%s/%s.jpg', $this->event_id, $this->ticket_code);
+        return sprintf('tickets/qr/%s/%s', $this->event_id, $this->qrFileName());
     }
 
     public function qrDownloadFileName(): string
     {
+        return $this->qrFileName();
+    }
+
+    public function qrFileName(): string
+    {
         $this->loadMissing(['event', 'student.eventClass']);
 
         $segments = [
-            $this->event?->name ?? 'event',
-            $this->student?->name ?? 'siswa',
-            $this->student?->eventClass?->name ?? 'kelas',
-            $this->ticket_code ?? 'unik',
+            $this->cleanSegment($this->event?->name ?? 'event'),
+            $this->cleanSegment($this->student?->name ?? 'siswa'),
+            $this->cleanSegment($this->student?->eventClass?->name ?? 'kelas'),
+            $this->qrSequenceNumber(),
         ];
 
-        $filename = collect([
-            Str::of($segments[0])->headline()->upper()->replace(' ', '_')->toString(),
-            Str::of($segments[1])->headline()->upper()->replace(' ', '_')->toString(),
-            Str::of($segments[2])->headline()->upper()->replace(' ', '_')->toString(),
-        ])
+        return collect($segments)
             ->filter()
-            ->implode('_');
+            ->implode('_') . '.jpg';
+    }
 
-        return ($filename !== '' ? $filename : 'qr-tiket') . '.jpg';
+    protected function qrSequenceNumber(): string
+    {
+        if (blank($this->ticket_code)) {
+            return '00000';
+        }
+
+        if (preg_match('/(\d+)$/', (string) $this->ticket_code, $matches) === 1) {
+            return str_pad($matches[1], 5, '0', STR_PAD_LEFT);
+        }
+
+        return '00000';
+    }
+
+    protected function cleanSegment(?string $value): string
+    {
+        $segment = Str::of((string) $value)
+            ->ascii()
+            ->replaceMatches('/[^A-Za-z0-9]+/', '_')
+            ->trim('_')
+            ->upper()
+            ->toString();
+
+        return $segment !== '' ? $segment : 'X';
     }
 }

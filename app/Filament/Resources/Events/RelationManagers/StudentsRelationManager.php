@@ -4,6 +4,8 @@ namespace App\Filament\Resources\Events\RelationManagers;
 
 use App\Filament\Actions\DownloadStudentTicketQrAction;
 use App\Models\Student;
+use App\Services\Tickets\TicketQrZipExportService;
+use Filament\Actions\BulkAction;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\CreateAction;
 use Filament\Actions\DeleteAction;
@@ -16,6 +18,7 @@ use Filament\Schemas\Components\Utilities\Get;
 use Filament\Schemas\Schema;
 use Filament\Tables\Columns\SelectColumn;
 use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
@@ -196,7 +199,20 @@ class StudentsRelationManager extends RelationManager
                     ->toggleable(),
             ])
             ->filters([
-                //
+                SelectFilter::make('class_id')
+                    ->label('Kelas')
+                    ->relationship('eventClass', 'name')
+                    ->searchable()
+                    ->preload(),
+                SelectFilter::make('gender')
+                    ->label('Jenis Kelamin')
+                    ->options([
+                        'male' => 'Laki-laki',
+                        'female' => 'Perempuan',
+                    ]),
+                SelectFilter::make('status')
+                    ->label('Status')
+                    ->options(self::statusOptions()),
             ])
             ->headerActions([
                 ...(
@@ -230,6 +246,32 @@ class StudentsRelationManager extends RelationManager
                         ? []
                         : [
                             BulkActionGroup::make([
+                                BulkAction::make('downloadQrZip')
+                                    ->label('Download QR ZIP')
+                                    ->icon('heroicon-o-arrow-down-tray')
+                                    ->color('gray')
+                                    ->modalHeading('Download QR ZIP Siswa')
+                                    ->modalSubmitActionLabel('Unduh ZIP')
+                                    ->requiresConfirmation()
+                                    ->action(function (BulkAction $action) {
+                                        $user = auth()->user();
+
+                                        if ($user === null) {
+                                            abort(403);
+                                        }
+
+                                        $service = app(TicketQrZipExportService::class);
+                                        $selectedRecords = $action->getSelectedRecords();
+                                        $archiveBaseName = 'qr-tiket-' . $this->getOwnerRecord()->code . '-selected-' . now()->format('Ymd-His');
+
+                                        return response()
+                                            ->download(
+                                                $service->exportStudents($selectedRecords, $user, $archiveBaseName),
+                                                strtoupper(str_replace('-', '_', $archiveBaseName)) . '.zip',
+                                            )
+                                            ->deleteFileAfterSend(true);
+                                    })
+                                    ->deselectRecordsAfterCompletion(),
                                 DeleteBulkAction::make()
                                     ->label('Hapus Terpilih')
                                     ->successNotificationTitle('Data siswa berhasil dihapus.'),

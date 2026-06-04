@@ -15,11 +15,13 @@ use Illuminate\Database\Eloquent\Model;
 class AssignedClassesRelationManager extends RelationManager
 {
     protected static string $relationship = 'assignedClasses';
-    protected static ?string $title = 'Kelas Terkait';
+    protected static ?string $title = 'Kelas yang Dipegang';
 
     public static function canViewForRecord(Model $ownerRecord, string $pageClass): bool
     {
-        return auth()->user()?->can('Update:User') ?? false;
+        return (auth()->user()?->can('Update:User') ?? false)
+            && method_exists($ownerRecord, 'hasRole')
+            && $ownerRecord->hasRole('pic_sekolah');
     }
 
     public function table(Table $table): Table
@@ -45,8 +47,9 @@ class AssignedClassesRelationManager extends RelationManager
             ->headerActions([
                 AttachAction::make()
                     ->label('Hubungkan Kelas')
-                    ->modalHeading('Hubungkan Kelas ke Akun PIC Sekolah')
+                    ->modalHeading('Hubungkan Kelas ke Akun Guru Kelas')
                     ->modalSubmitActionLabel('Simpan Hubungan')
+                    ->modalDescription('Akses guru kelas ke acara dan siswa akan mengikuti kelas-kelas yang dihubungkan di sini.')
                     ->recordSelectSearchColumns(['name', 'code'])
                     ->recordSelectOptionsQuery(function (Builder $query): Builder {
                         return $query

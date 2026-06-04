@@ -21,11 +21,7 @@ class PicSekolahEventsTableWidget extends TableWidget
         return $table
             ->query(
                 Event::query()
-                    ->where(function (Builder $query) use ($user): void {
-                        $query
-                            ->whereHas('assignedUsers', fn (Builder $assignedUsersQuery): Builder => $assignedUsersQuery->whereKey($user?->getKey()))
-                            ->orWhereHas('classes.assignedUsers', fn (Builder $assignedClassUsersQuery): Builder => $assignedClassUsersQuery->whereKey($user?->getKey()));
-                    })
+                    ->whereHas('classes.assignedUsers', fn (Builder $assignedClassUsersQuery): Builder => $assignedClassUsersQuery->whereKey($user?->getKey()))
                     ->withCount([
                         'classes as assigned_classes_count' => fn (Builder $query): Builder => $query
                             ->whereHas('assignedUsers', fn (Builder $assignedUsersQuery): Builder => $assignedUsersQuery->whereKey($user?->getKey())),
@@ -33,7 +29,7 @@ class PicSekolahEventsTableWidget extends TableWidget
                     ->orderBy('event_date')
             )
             ->heading('Acara yang Dipegang')
-            ->description('Daftar acara yang terhubung ke akun PIC Anda beserta status lock dan jumlah kelas yang dipegang.')
+            ->description('Daftar acara yang muncul dari assignment kelas PIC beserta status lock dan jumlah kelas yang dipegang.')
             ->columns([
                 TextColumn::make('index')
                     ->label('No.')

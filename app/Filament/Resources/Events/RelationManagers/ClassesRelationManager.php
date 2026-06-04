@@ -55,22 +55,29 @@ class ClassesRelationManager extends RelationManager
                 TextColumn::make('sort_order')
                     ->label('Urutan')
                     ->sortable(),
+                TextColumn::make('assignedUsers.name')
+                    ->label('Guru Kelas')
+                    ->badge()
+                    ->separator(', ')
+                    ->placeholder('-')
+                    ->toggleable(),
             ])
             ->headerActions([
                 CreateAction::make()->label('Tambah Kelas'),
             ])
             ->recordActions([
                 Action::make('assignPic')
-                    ->label('Hubungkan User PIC / Guru')
+                    ->label('Hubungkan Guru Kelas')
                     ->icon('heroicon-o-user-plus')
-                    ->modalHeading(fn ($record): string => 'Hubungkan User PIC / Guru untuk ' . $record->name)
+                    ->modalHeading(fn ($record): string => 'Hubungkan Guru Kelas untuk ' . $record->name)
                     ->modalSubmitActionLabel('Simpan Hubungan')
                     ->form([
                         Select::make('user_ids')
-                            ->label('Pilih User PIC / Guru')
+                            ->label('Pilih Guru Kelas')
                             ->multiple()
                             ->searchable()
                             ->preload()
+                            ->helperText('Akun guru kelas yang dihubungkan di sini akan mendapatkan akses ke event dan siswa sesuai kelas yang dipegang.')
                             ->options(fn (): array => User::query()
                                 ->orderBy('name')
                                 ->get()

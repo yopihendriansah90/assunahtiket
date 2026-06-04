@@ -25,11 +25,7 @@ class PicSekolahOverviewWidget extends StatsOverviewWidget
         $assignedClassIds = $user->assignedClasses()->pluck('classes.id');
 
         $eventsQuery = Event::query()
-            ->where(function (Builder $query) use ($user): void {
-                $query
-                    ->whereHas('assignedUsers', fn (Builder $assignedUsersQuery): Builder => $assignedUsersQuery->whereKey($user->getKey()))
-                    ->orWhereHas('classes.assignedUsers', fn (Builder $assignedClassUsersQuery): Builder => $assignedClassUsersQuery->whereKey($user->getKey()));
-            });
+            ->whereHas('classes.assignedUsers', fn (Builder $assignedClassUsersQuery): Builder => $assignedClassUsersQuery->whereKey($user->getKey()));
 
         $eventsCount = (clone $eventsQuery)->count();
         $lockedEventsCount = (clone $eventsQuery)->whereNotNull('locked_at')->count();
@@ -40,7 +36,7 @@ class PicSekolahOverviewWidget extends StatsOverviewWidget
 
         return [
             Stat::make('Acara yang Dipegang', number_format($eventsCount))
-                ->description('Acara yang terhubung ke akun PIC Anda')
+                ->description('Acara yang muncul dari kelas yang dihubungkan ke akun PIC Anda')
                 ->color('primary'),
             Stat::make('Kelas yang Dipegang', number_format($classesCount))
                 ->description('Kelas yang saat ini bisa Anda kelola')

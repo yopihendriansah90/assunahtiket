@@ -17,15 +17,11 @@ class StudentTicketQrDownloadController extends Controller
         abort_unless($user->can('ViewAny:Student') || $user->hasRole('super_admin'), 403);
 
         if ($user->hasRole('pic_sekolah') && ! $user->hasRole('super_admin')) {
-            $isAssignedToEvent = $student->event?->assignedUsers()
-                ->whereKey($user->getKey())
-                ->exists();
-
             $isAssignedToClass = $user->assignedClasses()
                 ->whereKey($student->class_id)
                 ->exists();
 
-            abort_unless($isAssignedToEvent || $isAssignedToClass, 403);
+            abort_unless($isAssignedToClass, 403);
         }
 
         $ticket = $student->ticket()->first();

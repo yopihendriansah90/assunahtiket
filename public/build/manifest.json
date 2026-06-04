@@ -1,0 +1,23 @@
+{
+  "resources/css/app.css": {
+    "file": "assets/app-BAyTiNtq.css",
+    "src": "resources/css/app.css",
+    "isEntry": true,
+    "name": "app",
+    "names": [
+      "app.css"
+    ]
+  },
+  "resources/js/app.js": {
+    "file": "assets/app-UyRVujZY.js",
+    "name": "app",
+    "src": "resources/js/app.js",
+    "isEntry": true
+  },
+  "resources/js/gate-scanner.js": {
+    "file": "assets/gate-scanner-PJkyxXl9.js",
+    "name": "gate-scanner",
+    "src": "resources/js/gate-scanner.js",
+    "isEntry": true
+  }
+}

@@ -18,7 +18,7 @@ use RuntimeException;
 class TicketQrImageService
 {
     private string $disk = 'public';
-    private const TICKET_SEQUENCE_PADDING = 3;
+    private const TICKET_SEQUENCE_PADDING = 5;
 
     private const QR_LABEL_HEADER_HEIGHT = 72;
 
@@ -179,7 +179,7 @@ class TicketQrImageService
     protected function makeQrToken(): string
     {
         do {
-            $token = bin2hex(random_bytes(13));
+            $token = (string) Str::ulid();
         } while (Ticket::query()->where('qr_token', $token)->exists());
 
         return $token;

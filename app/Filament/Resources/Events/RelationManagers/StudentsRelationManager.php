@@ -30,14 +30,6 @@ class StudentsRelationManager extends RelationManager
     protected static string $relationship = 'students';
     protected static ?string $title = 'Siswa';
 
-    private static function statusOptions(): array
-    {
-        return [
-            'draft' => 'Draf',
-            'ready' => 'Siap',
-        ];
-    }
-
     private function isOwnerEventLocked(): bool
     {
         return filled($this->getOwnerRecord()->locked_at);
@@ -172,12 +164,6 @@ class StudentsRelationManager extends RelationManager
                     ->options(Student::genderOptions())
                     ->required()
                     ->disabled($isLocked && ! $canBypassLock),
-                Select::make('status')
-                    ->label('Status')
-                    ->options(self::statusOptions())
-                    ->required()
-                    ->default('draft')
-                    ->disabled($isLocked && ! $canBypassLock),
                 TextInput::make('mother_name')
                     ->label('Nama Ibu Kandung')
                     ->required()
@@ -242,12 +228,6 @@ class StudentsRelationManager extends RelationManager
                     ->label('Jenis Kelamin')
                     ->formatStateUsing(fn (?string $state): string => Student::genderLabel($state))
                     ->badge(),
-                SelectColumn::make('status')
-                    ->label('Status')
-                    ->options(self::statusOptions())
-                    ->native(false)
-                    ->selectablePlaceholder(false)
-                    ->disabled($isLocked && ! $canBypassLock),
                 TextColumn::make('mother_name')
                     ->label('Nama Ibu Kandung')
                     ->toggleable(),
@@ -267,9 +247,6 @@ class StudentsRelationManager extends RelationManager
                 SelectFilter::make('gender')
                     ->label('Jenis Kelamin')
                     ->options(Student::genderOptions()),
-                SelectFilter::make('status')
-                    ->label('Status')
-                    ->options(self::statusOptions()),
             ])
             ->headerActions([
                 ...(

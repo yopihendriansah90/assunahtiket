@@ -19,32 +19,20 @@ class Student extends Model
         'name',
         'gender',
         'mother_name',
-        'status',
-        'locked_at',
-        'locked_by',
         'created_by',
         'updated_by',
     ];
-
-    protected function casts(): array
-    {
-        return [
-            'locked_at' => 'datetime',
-        ];
-    }
 
     protected static function booted(): void
     {
         static::creating(function (self $student): void {
             $student->created_by ??= auth()->id();
             $student->updated_by ??= auth()->id();
-            $student->status ??= 'draft';
             static::ensureEventIsMutable($student);
         });
 
         static::updating(function (self $student): void {
             $student->updated_by = auth()->id();
-            $student->status ??= 'draft';
             static::ensureEventIsMutable($student);
         });
 

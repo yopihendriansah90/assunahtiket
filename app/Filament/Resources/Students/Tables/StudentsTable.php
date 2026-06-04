@@ -59,10 +59,6 @@ class StudentsTable
                     ->label('Jenis Kelamin')
                     ->formatStateUsing(fn (?string $state): string => Student::genderLabel($state))
                     ->toggleable(),
-                TextColumn::make('status')
-                    ->badge()
-                    ->label('Status')
-                    ->sortable(),
             ])
             ->filters([
                 SelectFilter::make('event_id')
@@ -101,11 +97,6 @@ class StudentsTable
 
                         return $query->where('class_id', $value);
                     }),
-                SelectFilter::make('status')
-                    ->options([
-                        'draft' => 'Draf',
-                        'ready' => 'Siap',
-                    ]),
             ])
             ->recordActions([
                 DownloadStudentTicketQrAction::make(),

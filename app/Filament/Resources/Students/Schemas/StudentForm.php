@@ -99,14 +99,6 @@ class StudentForm
                             }
                         };
                     }),
-                Select::make('status')
-                    ->options([
-                        'draft' => 'Draf',
-                        'ready' => 'Siap',
-                    ])
-                    ->label('Status')
-                    ->required()
-                    ->default('draft'),
             ]);
     }
 }

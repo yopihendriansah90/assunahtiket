@@ -10,6 +10,8 @@ use Illuminate\Support\Str;
 
 class Ticket extends Model
 {
+    private const QR_SEQUENCE_PADDING = 5;
+
     protected $fillable = [
         'event_id',
         'student_id',
@@ -102,14 +104,14 @@ class Ticket extends Model
     protected function qrSequenceNumber(): string
     {
         if (blank($this->ticket_code)) {
-            return '00000';
+            return str_pad('0', self::QR_SEQUENCE_PADDING, '0', STR_PAD_LEFT);
         }
 
         if (preg_match('/(\d+)$/', (string) $this->ticket_code, $matches) === 1) {
-            return str_pad($matches[1], 5, '0', STR_PAD_LEFT);
+            return str_pad($matches[1], self::QR_SEQUENCE_PADDING, '0', STR_PAD_LEFT);
         }
 
-        return '00000';
+        return str_pad('0', self::QR_SEQUENCE_PADDING, '0', STR_PAD_LEFT);
     }
 
     protected function cleanSegment(?string $value): string

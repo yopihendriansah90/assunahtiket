@@ -80,7 +80,7 @@ class EventForm
 
                                 $sequenceStart = max(1, (int) ($get('ticket_sequence_start') ?? 1));
 
-                                return sprintf('%s-%03d', $prefix, $sequenceStart);
+                                return sprintf('%s-%05d', $prefix, $sequenceStart);
                             })
                             ->helperText('Contoh kode tiket pertama yang akan dibuat untuk acara ini.'),
                     ])

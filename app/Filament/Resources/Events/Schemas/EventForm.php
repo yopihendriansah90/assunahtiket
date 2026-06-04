@@ -25,11 +25,6 @@ class EventForm
                             ->label('Nama Acara')
                             ->required()
                             ->maxLength(255),
-                        TextInput::make('code')
-                            ->label('Kode Acara')
-                            ->disabled()
-                            ->dehydrated()
-                            ->helperText('Kode dibuat otomatis dan dijamin unik.'),
                         DatePicker::make('event_date')
                             ->label('Tanggal Acara')
                             ->required(),
@@ -73,7 +68,7 @@ class EventForm
                                 $prefix = (string) ($get('ticket_code_prefix') ?? '');
                                 $prefix = filled($prefix)
                                     ? $prefix
-                                    : ($record?->event?->code ?? 'TKT');
+                                    : ((string) ($get('../code') ?? $record?->event?->code ?? 'TKT'));
 
                                 $prefix = Str::of($prefix)
                                     ->ascii()

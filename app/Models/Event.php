@@ -36,26 +36,53 @@ class Event extends Model
 
     protected static function booted(): void
     {
+        static::saving(function (Event $event): void {
+            if (blank($event->code)) {
+                return;
+            }
+
+            $event->code = static::normalizeCode($event->code);
+        });
+
         static::creating(function (Event $event): void {
             if (filled($event->code)) {
                 return;
             }
 
-            $base = Str::of($event->name ?: 'EVENT')
-                ->ascii()
-                ->replaceMatches('/[^A-Za-z0-9]/', '')
-                ->upper()
-                ->substr(0, 6)
-                ->toString();
-
-            $base = $base !== '' ? $base : 'EVT';
-            $sequence = 1;
-
-            do {
-                $event->code = sprintf('%s-%03d', $base, $sequence);
-                $sequence++;
-            } while (static::query()->where('code', $event->code)->exists());
+            $event->code = static::generateUniqueCode($event->name);
         });
+    }
+
+    protected static function normalizeCode(string $code): string
+    {
+        return Str::of($code)
+            ->trim()
+            ->ascii()
+            ->upper()
+            ->replaceMatches('/[^A-Z0-9-]/', '-')
+            ->replaceMatches('/-+/', '-')
+            ->trim('-')
+            ->toString();
+    }
+
+    protected static function generateUniqueCode(?string $name): string
+    {
+        $base = Str::of($name ?: 'EVENT')
+            ->ascii()
+            ->replaceMatches('/[^A-Za-z0-9]/', '')
+            ->upper()
+            ->substr(0, 6)
+            ->toString();
+
+        $base = $base !== '' ? $base : 'EVT';
+        $sequence = 1;
+
+        do {
+            $code = sprintf('%s-%03d', $base, $sequence);
+            $sequence++;
+        } while (static::query()->where('code', $code)->exists());
+
+        return $code;
     }
 
     public function lockedBy(): BelongsTo

@@ -34,9 +34,15 @@ class EditEvent extends EditRecord
         return EventResource::getRelations();
     }
 
-    protected function getSavedNotificationMessage(): ?string
+    protected function getSavedNotification(): ?Notification
     {
-        return 'Data acara berhasil diperbarui.';
+        return Notification::make()
+            ->success()
+            ->title('Perubahan acara berhasil disimpan')
+            ->body(sprintf(
+                'Data acara "%s" sudah diperbarui. Anda bisa langsung melanjutkan pengelolaan kelas, siswa, dan pengaturan tiket dari halaman ini.',
+                $this->record->name,
+            ));
     }
 
     protected function getHeaderActions(): array

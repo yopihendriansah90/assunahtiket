@@ -80,13 +80,13 @@ class EventResource extends Resource
 
         if ($panelId === 'picsekolah') {
             return [
-                StudentsRelationManager::class,
+                'students' => StudentsRelationManager::class,
             ];
         }
 
         return [
-            ClassesRelationManager::class,
-            StudentsRelationManager::class,
+            'classes' => ClassesRelationManager::class,
+            'students' => StudentsRelationManager::class,
         ];
     }
 

@@ -21,11 +21,11 @@ class EventGateResource extends Resource
     protected static ?string $recordTitleAttribute = 'name';
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedMapPin;
-    protected static ?string $navigationLabel = 'Gerbang';
+    protected static ?string $navigationLabel = 'Pintu Masuk';
     protected static string|UnitEnum|null $navigationGroup = 'Operasional';
     protected static ?int $navigationSort = 1;
-    protected static ?string $modelLabel = 'Gerbang';
-    protected static ?string $pluralModelLabel = 'Gerbang';
+    protected static ?string $modelLabel = 'Pintu Masuk';
+    protected static ?string $pluralModelLabel = 'Pintu Masuk';
 
     public static function form(Schema $schema): Schema
     {

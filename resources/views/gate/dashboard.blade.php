@@ -14,6 +14,8 @@
             'ditolak' => 0,
         ];
         $recentScans = $recentScans ?? collect();
+        $hasAnyGate = $gates->isNotEmpty();
+        $isSuperAdmin = $user?->hasRole('super_admin') ?? false;
     @endphp
 
     <div class="card" id="gate-dashboard" data-stats-url="{{ route('gate.stats', ['gate' => $activeGate?->id]) }}">
@@ -41,7 +43,7 @@
                     <select id="gate" name="gate" onchange="this.form.submit()">
                         @foreach ($gates as $gate)
                             <option value="{{ $gate->id }}" @selected($activeGate?->id === $gate->id)>
-                                {{ $gate->code }} — {{ $gate->name }}
+                                {{ $gate->name }}
                             </option>
                         @endforeach
                     </select>
@@ -56,8 +58,13 @@
 
             @if (! $activeGate)
                 <div class="empty">
-                    <strong>Tidak ada gate yang ditugaskan.</strong>
-                    <div style="margin-top: 8px;">Hubungkan akun ini ke gate terlebih dulu dari menu Gerbang.</div>
+                    @if (! $hasAnyGate && $isSuperAdmin)
+                        <strong>Belum ada gate yang dibuat.</strong>
+                        <div style="margin-top: 8px;">Silakan buat gate dulu dari panel admin agar dashboard gate bisa digunakan.</div>
+                    @else
+                        <strong>Tidak ada gate yang ditugaskan.</strong>
+                        <div style="margin-top: 8px;">Hubungkan akun ini ke gate terlebih dulu dari menu Gerbang di panel admin.</div>
+                    @endif
                 </div>
             @else
                 <section class="search-strip">
@@ -339,7 +346,7 @@
                 const enterButton = document.getElementById('gate-scan-mode-enter');
                 const autoButton = document.getElementById('gate-scan-mode-auto');
                 const modeKey = 'gate.scan.mode';
-                const recentScansUrl = '{{ route('gate.recent-scans', ['gate' => $activeGate->id]) }}';
+                const recentScansUrl = '{{ route('gate.recent-scans', ['gate' => $activeGate?->id]) }}';
                 let submitTimer = null;
                 let mode = localStorage.getItem(modeKey) || 'enter';
 

@@ -21,7 +21,7 @@ class EventGatesTable
                     ->sortable()
                     ->searchable(),
                 TextColumn::make('name')
-                    ->label('Nama Gerbang')
+                    ->label('Nama Pintu Masuk')
                     ->searchable()
                     ->sortable(),
                 TextColumn::make('code')

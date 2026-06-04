@@ -54,7 +54,7 @@ class CheckinsTable
                     ->searchable()
                     ->sortable(),
                 TextColumn::make('gate.name')
-                    ->label('Gerbang')
+                    ->label('Pintu Masuk')
                     ->searchable()
                     ->toggleable(),
                 TextColumn::make('user.name')
@@ -77,7 +77,7 @@ class CheckinsTable
                     ->searchable()
                     ->preload(),
                 SelectFilter::make('event_gate_id')
-                    ->label('Gerbang')
+                    ->label('Pintu Masuk')
                     ->relationship('gate', 'name')
                     ->searchable()
                     ->preload(),

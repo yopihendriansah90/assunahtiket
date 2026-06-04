@@ -38,7 +38,7 @@ class EventGateForm
                     )
                     ->helperText('Pilih user yang bertugas scan QR pada gate ini.'),
                 TextInput::make('name')
-                    ->label('Nama Gerbang')
+                    ->label('Nama Pintu Masuk')
                     ->required()
                     ->maxLength(255),
                 Toggle::make('is_active')

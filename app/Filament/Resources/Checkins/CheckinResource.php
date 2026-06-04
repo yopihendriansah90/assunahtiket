@@ -43,7 +43,7 @@ class CheckinResource extends Resource
                     TextEntry::make('event.name')
                         ->label('Acara'),
                     TextEntry::make('gate.name')
-                        ->label('Gerbang'),
+                        ->label('Pintu Masuk'),
                     TextEntry::make('scan_method')
                         ->label('Metode Scan')
                         ->badge()

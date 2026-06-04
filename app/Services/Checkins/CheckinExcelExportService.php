@@ -31,7 +31,7 @@ class CheckinExcelExportService
             'Jenis Kelamin',
             'Nama Ibu Kandung',
             'Kode Tiket',
-            'Gerbang',
+            'Pintu Masuk',
             'Operator',
             'Metode Scan',
             'Nilai Scan',

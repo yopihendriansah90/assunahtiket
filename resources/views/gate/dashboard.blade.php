@@ -16,6 +16,30 @@
         $recentScans = $recentScans ?? collect();
         $hasAnyGate = $gates->isNotEmpty();
         $isSuperAdmin = $user?->hasRole('super_admin') ?? false;
+        $initialScanPayload = $scanResult
+            ? [
+                'scanResult' => [
+                    'status' => $scanStatus,
+                    'message' => data_get($scanResult, 'message'),
+                    'gate_name' => data_get($scanResult, 'gate_name', $activeGate?->name),
+                    'gate_code' => data_get($scanResult, 'gate_code'),
+                    'ticket' => $scanTicket
+                        ? [
+                            'name' => $scanTicket?->student?->name ?? '-',
+                            'class' => $scanTicket?->student?->eventClass?->name ?? '-',
+                            'ticket_code' => $scanTicket?->ticket_code,
+                            'qr_token' => $scanTicket?->qr_token,
+                        ]
+                        : null,
+                    'checkin' => $scanCheckin
+                        ? [
+                            'checked_in_at' => $scanCheckin?->checked_in_at?->format('d/m/Y H:i:s'),
+                            'scan_method' => $scanCheckin?->scan_method,
+                        ]
+                        : null,
+                ],
+            ]
+            : null;
     @endphp
 
     <div class="card" id="gate-dashboard" data-stats-url="{{ route('gate.stats', ['gate' => $activeGate?->id]) }}">
@@ -49,7 +73,7 @@
                     </select>
                 </form>
 
-                <div style="display: flex; justify-content: flex-end;">
+                        <div style="display: flex; justify-content: flex-end;">
                     <span class="badge {{ $activeGate?->is_active ? 'badge-success' : 'badge-warning' }}">
                         {{ $activeGate?->is_active ? 'Gate Aktif' : 'Gate Nonaktif' }}
                     </span>
@@ -63,7 +87,7 @@
                         <div style="margin-top: 8px;">Silakan buat gate dulu dari panel admin agar dashboard gate bisa digunakan.</div>
                     @else
                         <strong>Tidak ada gate yang ditugaskan.</strong>
-                        <div style="margin-top: 8px;">Hubungkan akun ini ke gate terlebih dulu dari menu Gerbang di panel admin.</div>
+                        <div style="margin-top: 8px;">Hubungkan akun ini ke gate terlebih dulu dari menu Pintu Masuk di panel admin.</div>
                     @endif
                 </div>
             @else
@@ -151,7 +175,7 @@
                     <section class="panel">
                         <div class="panel-header">
                             <h2>Hasil Scan</h2>
-                            <span id="scan-status-badge" class="badge {{ $scanResult ? ($scanStatus === 'success' ? 'badge-success' : 'badge-warning') : 'badge-warning' }}">
+                            <span id="scan-status-badge" class="badge {{ $scanResult ? ($scanStatus === 'success' ? 'badge-success' : ($scanStatus === 'already_scanned' ? 'badge-warning' : 'badge-danger')) : 'badge-warning' }}">
                                 {{ $scanResult ? ($scanStatus === 'success' ? 'Berhasil' : ($scanStatus === 'already_scanned' ? 'Sudah Scan' : 'Tidak Ditemukan')) : 'Siap scan' }}
                             </span>
                         </div>
@@ -195,7 +219,7 @@
                                     <div class="detail-label">Status</div>
                                     <div class="detail-value">
                                         @if ($scanResult)
-                                            <span id="scan-result-badge" class="badge {{ $scanStatus === 'success' ? 'badge-success' : 'badge-warning' }}">
+                                            <span id="scan-result-badge" class="badge {{ $scanStatus === 'success' ? 'badge-success' : ($scanStatus === 'already_scanned' ? 'badge-warning' : 'badge-danger') }}">
                                                 {{ $scanStatus === 'success' ? 'Check-in berhasil' : ($scanStatus === 'already_scanned' ? 'Sudah check-in' : 'Tidak ditemukan') }}
                                             </span>
                                         @else
@@ -337,6 +361,30 @@
         </div>
     </div>
 
+    <div
+        id="scan-feedback-modal"
+        class="scan-modal"
+        aria-hidden="true"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="scan-feedback-title"
+    >
+        <div class="scan-modal-card">
+            <div id="scan-feedback-head" class="scan-modal-head is-success">
+                <div id="scan-feedback-icon" class="scan-modal-icon">✓</div>
+                <p id="scan-feedback-title" class="scan-modal-title">Scan Berhasil</p>
+            </div>
+            <div class="scan-modal-body">
+                <p id="scan-feedback-message" class="scan-modal-message">
+                    Tiket valid dan check-in berhasil diproses.
+                </p>
+                <div id="scan-feedback-meta" class="scan-modal-meta">
+                    Notifikasi ini akan tertutup otomatis dalam 3 detik.
+                </div>
+            </div>
+        </div>
+    </div>
+
     @push('scripts')
         <script>
             (() => {
@@ -350,6 +398,12 @@
                 const scanResultIcon = document.getElementById('scan-result-icon');
                 const scanResultTitle = document.getElementById('scan-result-title');
                 const scanResultMessage = document.getElementById('scan-result-message');
+                const scanFeedbackModal = document.getElementById('scan-feedback-modal');
+                const scanFeedbackHead = document.getElementById('scan-feedback-head');
+                const scanFeedbackIcon = document.getElementById('scan-feedback-icon');
+                const scanFeedbackTitle = document.getElementById('scan-feedback-title');
+                const scanFeedbackMessage = document.getElementById('scan-feedback-message');
+                const scanFeedbackMeta = document.getElementById('scan-feedback-meta');
                 const enterButton = document.getElementById('gate-scan-mode-enter');
                 const autoButton = document.getElementById('gate-scan-mode-auto');
                 const cameraReader = document.getElementById('camera-reader');
@@ -372,6 +426,8 @@
                 let isSubmittingScan = false;
                 let cameraEnabled = true;
                 let isCameraRunning = false;
+                let feedbackModalTimer = null;
+                let feedbackModalCountdownTimer = null;
 
                 if (! input || ! form) {
                     return;
@@ -559,44 +615,121 @@
                     });
                 };
 
+                const hideFeedbackModal = () => {
+                    if (! scanFeedbackModal) {
+                        return;
+                    }
+
+                    clearTimeout(feedbackModalTimer);
+                    clearInterval(feedbackModalCountdownTimer);
+                    scanFeedbackModal.classList.remove('is-visible');
+                    scanFeedbackModal.setAttribute('aria-hidden', 'true');
+                };
+
+                const showFeedbackModal = (status, message) => {
+                    if (! scanFeedbackModal || ! scanFeedbackHead || ! scanFeedbackIcon || ! scanFeedbackTitle || ! scanFeedbackMessage) {
+                        return;
+                    }
+
+                    const variant = status === 'success'
+                        ? {
+                            headClass: 'is-success',
+                            icon: '✓',
+                            title: 'Scan Berhasil',
+                            meta: 'Tiket valid dan check-in berhasil diproses.',
+                        }
+                        : status === 'already_scanned'
+                            ? {
+                                headClass: 'is-warning',
+                                icon: '!',
+                                title: 'Tiket Sudah Pernah Masuk',
+                                meta: 'Tiket ini sudah pernah digunakan untuk check-in.',
+                            }
+                            : {
+                                headClass: 'is-danger',
+                                icon: '✕',
+                                title: 'Tiket Tidak Valid',
+                                meta: 'QR code atau kode tiket tidak ditemukan pada pintu masuk aktif.',
+                            };
+
+                    clearTimeout(feedbackModalTimer);
+                    clearInterval(feedbackModalCountdownTimer);
+                    scanFeedbackHead.classList.remove('is-success', 'is-warning', 'is-danger');
+                    scanFeedbackHead.classList.add(variant.headClass);
+                    scanFeedbackIcon.textContent = variant.icon;
+                    scanFeedbackTitle.textContent = variant.title;
+                    scanFeedbackMessage.textContent = message || variant.meta;
+
+                    let countdown = 3;
+
+                    if (scanFeedbackMeta) {
+                        scanFeedbackMeta.textContent = `Notifikasi ini akan tertutup otomatis dalam ${countdown} detik.`;
+                    }
+
+                    scanFeedbackModal.classList.add('is-visible');
+                    scanFeedbackModal.setAttribute('aria-hidden', 'false');
+
+                    feedbackModalCountdownTimer = window.setInterval(() => {
+                        countdown -= 1;
+
+                        if (countdown <= 0) {
+                            clearInterval(feedbackModalCountdownTimer);
+                            return;
+                        }
+
+                        if (scanFeedbackMeta) {
+                            scanFeedbackMeta.textContent = `Notifikasi ini akan tertutup otomatis dalam ${countdown} detik.`;
+                        }
+                    }, 1000);
+
+                    feedbackModalTimer = window.setTimeout(() => {
+                        hideFeedbackModal();
+                    }, 3000);
+                };
+
                 const applyScanResult = (payload) => {
                     const result = payload?.scanResult || {};
                     const ticket = result.ticket || null;
                     const checkin = result.checkin || null;
                     const status = result.status || 'missing';
+                    const isMissing = status === 'missing';
+                    const isAlreadyScanned = status === 'already_scanned';
+                    const isSuccess = status === 'success';
 
                     if (scanStatusBadge) {
-                        scanStatusBadge.textContent = status === 'success'
+                        scanStatusBadge.textContent = isSuccess
                             ? 'Berhasil'
-                            : status === 'already_scanned'
+                            : isAlreadyScanned
                                 ? 'Sudah Scan'
                                 : 'Tidak Ditemukan';
-                        scanStatusBadge.classList.remove('badge-success', 'badge-warning');
-                        scanStatusBadge.classList.add(status === 'success' ? 'badge-success' : 'badge-warning');
+                        scanStatusBadge.classList.remove('badge-success', 'badge-warning', 'badge-danger');
+                        scanStatusBadge.classList.add(isSuccess ? 'badge-success' : isAlreadyScanned ? 'badge-warning' : 'badge-danger');
                     }
 
                     if (scanResultBadge) {
-                        scanResultBadge.textContent = status === 'success'
+                        scanResultBadge.textContent = isSuccess
                             ? 'Check-in berhasil'
-                            : status === 'already_scanned'
+                            : isAlreadyScanned
                                 ? 'Sudah check-in'
                                 : 'Tidak ditemukan';
-                        scanResultBadge.classList.remove('badge-success', 'badge-warning');
-                        scanResultBadge.classList.add(status === 'success' ? 'badge-success' : 'badge-warning');
+                        scanResultBadge.classList.remove('badge-success', 'badge-warning', 'badge-danger');
+                        scanResultBadge.classList.add(isSuccess ? 'badge-success' : isAlreadyScanned ? 'badge-warning' : 'badge-danger');
                     }
 
                     if (scanResultBanner) {
-                        scanResultBanner.classList.toggle('is-empty', status !== 'success');
+                        scanResultBanner.classList.toggle('is-empty', ! isSuccess);
                     }
 
                     if (scanResultIcon) {
-                        scanResultIcon.textContent = status === 'success' ? '✓' : '!';
+                        scanResultIcon.textContent = isSuccess ? '✓' : isAlreadyScanned ? '!' : '✕';
                     }
 
                     if (scanResultTitle) {
-                        scanResultTitle.textContent = status === 'success'
+                        scanResultTitle.textContent = isSuccess
                             ? 'VALID'
-                            : 'INFO';
+                            : isAlreadyScanned
+                                ? 'WARNING'
+                                : 'INVALID';
                     }
 
                     if (scanResultMessage) {
@@ -635,6 +768,7 @@
                         }
                     }
 
+                    showFeedbackModal(status, result.message || null);
                     input.value = '';
                     input.focus();
                     input.select();
@@ -719,7 +853,12 @@
                 window.addEventListener('beforeunload', () => {
                     stopCameraStream();
                 });
+                scanFeedbackModal?.addEventListener('click', hideFeedbackModal);
                 startCameraStream();
+
+                @if ($initialScanPayload)
+                    applyScanResult(@json($initialScanPayload));
+                @endif
 
                 const refreshStats = async () => {
                     if (! dashboard) {

@@ -124,6 +124,7 @@
         }
         .badge-success { background: #d1fae5; color: #047857; }
         .badge-warning { background: #fef3c7; color: #92400e; }
+        .badge-danger { background: #fee2e2; color: #b91c1c; }
         .stack { display: grid; gap: 16px; }
         .topbar {
             display: flex;
@@ -617,6 +618,86 @@
             border: 1px dashed var(--line);
             border-radius: 20px;
             background: rgba(255,255,255,0.65);
+        }
+        .scan-modal {
+            position: fixed;
+            inset: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            background: rgba(15, 23, 42, 0.52);
+            z-index: 9999;
+            opacity: 0;
+            visibility: hidden;
+            pointer-events: none;
+            transition: opacity 0.18s ease, visibility 0.18s ease;
+        }
+        .scan-modal.is-visible {
+            opacity: 1;
+            visibility: visible;
+        }
+        .scan-modal-card {
+            width: min(100%, 420px);
+            border-radius: 24px;
+            background: #fff;
+            box-shadow: 0 24px 80px rgba(15, 23, 42, 0.24);
+            overflow: hidden;
+            transform: translateY(12px) scale(0.98);
+            transition: transform 0.18s ease;
+        }
+        .scan-modal.is-visible .scan-modal-card {
+            transform: translateY(0) scale(1);
+        }
+        .scan-modal-head {
+            display: grid;
+            place-items: center;
+            gap: 14px;
+            padding: 28px 24px 20px;
+            text-align: center;
+            color: #fff;
+        }
+        .scan-modal-head.is-success {
+            background: linear-gradient(135deg, #059669 0%, #16a34a 100%);
+        }
+        .scan-modal-head.is-warning {
+            background: linear-gradient(135deg, #d97706 0%, #f59e0b 100%);
+        }
+        .scan-modal-head.is-danger {
+            background: linear-gradient(135deg, #dc2626 0%, #ef4444 100%);
+        }
+        .scan-modal-icon {
+            width: 88px;
+            height: 88px;
+            border-radius: 999px;
+            display: grid;
+            place-items: center;
+            background: rgba(255, 255, 255, 0.18);
+            border: 3px solid rgba(255, 255, 255, 0.28);
+            font-size: 42px;
+            font-weight: 900;
+            line-height: 1;
+        }
+        .scan-modal-title {
+            margin: 0;
+            font-size: 28px;
+            font-weight: 900;
+            line-height: 1.05;
+        }
+        .scan-modal-body {
+            padding: 20px 24px 24px;
+            text-align: center;
+        }
+        .scan-modal-message {
+            margin: 0;
+            font-size: 16px;
+            line-height: 1.55;
+            color: #334155;
+        }
+        .scan-modal-meta {
+            margin-top: 14px;
+            font-size: 13px;
+            color: var(--muted);
         }
         .form-hint {
             color: var(--muted);

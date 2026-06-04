@@ -163,10 +163,13 @@ class GateAuthController extends Controller
 
             if ($existingCheckin) {
                 $lockedTicket->setRelation('latestCheckin', $existingCheckin);
+                $studentName = $lockedTicket->student?->name;
 
                 return [
                     'status' => 'already_scanned',
-                    'message' => 'Tiket ini sudah pernah check-in.',
+                    'message' => filled($studentName)
+                        ? "Tiket atas nama {$studentName} sudah pernah masuk."
+                        : 'Tiket ini sudah pernah masuk.',
                     'ticket_id' => $lockedTicket->getKey(),
                     'checkin_id' => $existingCheckin->getKey(),
                     'gate_id' => $gate->getKey(),

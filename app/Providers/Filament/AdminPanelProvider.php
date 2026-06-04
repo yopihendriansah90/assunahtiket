@@ -38,7 +38,8 @@ class AdminPanelProvider extends PanelProvider
             ->navigationGroups([
                 NavigationGroup::make('Data Master'),
                 NavigationGroup::make('Operasional'),
-                NavigationGroup::make('Kontrol Akses'),
+                NavigationGroup::make('Laporan'),
+                NavigationGroup::make('Peran dan Akses Pengguna'),
             ])
             ->pages([
                 Dashboard::class,
@@ -60,7 +61,8 @@ class AdminPanelProvider extends PanelProvider
                 DispatchServingFilamentEvent::class,
             ])
             ->plugins([
-                FilamentShieldPlugin::make(),
+                FilamentShieldPlugin::make()
+                    ->navigationGroup('Peran dan Akses Pengguna'),
             ])
             ->authMiddleware([
                 Authenticate::class,

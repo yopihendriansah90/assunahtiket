@@ -5,6 +5,9 @@ namespace App\Filament\Resources\Checkins\Tables;
 use App\Services\Checkins\CheckinExcelExportService;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\BulkAction;
+use Filament\Actions\DeleteBulkAction;
+use Filament\Actions\DeleteAction;
+use Filament\Actions\EditAction;
 use Filament\Actions\ViewAction;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\SelectFilter;
@@ -16,6 +19,7 @@ class CheckinsTable
     public static function configure(Table $table): Table
     {
         $user = auth()->user();
+        $isSuperAdmin = $user?->hasRole('super_admin') ?? false;
 
         return $table
             ->modifyQueryUsing(function (Builder $query) use ($user): Builder {
@@ -92,6 +96,12 @@ class CheckinsTable
                 ViewAction::make()
                     ->label('Detail')
                     ->visible(fn (): bool => auth()->user()?->can('View:Checkin') ?? false),
+                EditAction::make()
+                    ->label('Ubah')
+                    ->visible(fn () => $isSuperAdmin),
+                DeleteAction::make()
+                    ->label('Hapus')
+                    ->visible(fn () => $isSuperAdmin),
             ])
             ->toolbarActions([
                 BulkActionGroup::make([
@@ -120,6 +130,9 @@ class CheckinsTable
                                 ->downloadFile($temporaryPath, strtoupper(str_replace('-', '_', $fileBaseName)) . '.xlsx');
                         })
                         ->deselectRecordsAfterCompletion(),
+                    DeleteBulkAction::make()
+                        ->label('Hapus Terpilih')
+                        ->visible(fn () => $isSuperAdmin),
                 ]),
             ]);
     }

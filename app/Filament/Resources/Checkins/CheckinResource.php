@@ -2,8 +2,11 @@
 
 namespace App\Filament\Resources\Checkins;
 
+use App\Filament\Resources\Checkins\Pages\CreateCheckin;
+use App\Filament\Resources\Checkins\Pages\EditCheckin;
 use App\Filament\Resources\Checkins\Pages\ViewCheckin;
 use App\Filament\Resources\Checkins\Pages\ListCheckins;
+use App\Filament\Resources\Checkins\Schemas\CheckinForm;
 use App\Filament\Resources\Checkins\Tables\CheckinsTable;
 use App\Models\Checkin;
 use App\Models\Student;
@@ -29,6 +32,11 @@ class CheckinResource extends Resource
     protected static ?int $navigationSort = 2;
     protected static ?string $modelLabel = 'Kehadiran';
     protected static ?string $pluralModelLabel = 'Kehadiran';
+
+    public static function form(Schema $schema): Schema
+    {
+        return CheckinForm::configure($schema);
+    }
 
     public static function table(Table $table): Table
     {
@@ -99,10 +107,27 @@ class CheckinResource extends Resource
         return $query;
     }
 
+    public static function canCreate(): bool
+    {
+        return auth()->user()?->hasRole('super_admin') ?? false;
+    }
+
+    public static function canEdit($record): bool
+    {
+        return auth()->user()?->hasRole('super_admin') ?? false;
+    }
+
+    public static function canDelete($record): bool
+    {
+        return auth()->user()?->hasRole('super_admin') ?? false;
+    }
+
     public static function getPages(): array
     {
         return [
             'index' => ListCheckins::route('/'),
+            'create' => CreateCheckin::route('/create'),
+            'edit' => EditCheckin::route('/{record}/edit'),
             'view' => ViewCheckin::route('/{record}'),
         ];
     }

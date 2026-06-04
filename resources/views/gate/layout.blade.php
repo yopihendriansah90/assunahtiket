@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>{{ $title ?? 'Gate Dashboard' }}</title>
+    @vite('resources/js/gate-scanner.js')
     <style>
         :root {
             color-scheme: light;
@@ -335,6 +336,29 @@
             border: 1px solid #dbe3ef;
             overflow: hidden;
         }
+        .camera-reader {
+            position: absolute;
+            inset: 0;
+            width: 100%;
+            height: 100%;
+            background: #020617;
+        }
+        .camera-reader.is-hidden {
+            display: none;
+        }
+        .camera-reader video {
+            width: 100% !important;
+            height: 100% !important;
+            object-fit: cover;
+            border-radius: 0 !important;
+        }
+        .camera-reader > div {
+            width: 100%;
+            height: 100%;
+        }
+        .camera-reader section {
+            display: none !important;
+        }
         .camera-frame::before,
         .camera-frame::after {
             content: "";
@@ -364,10 +388,30 @@
             text-align: center;
             padding: 24px;
         }
+        .camera-placeholder.is-hidden {
+            display: none;
+        }
         .camera-placeholder strong {
             display: block;
             font-size: 18px;
             margin-top: 8px;
+        }
+        .camera-status {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .camera-status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 999px;
+            background: currentColor;
+        }
+        .camera-message {
+            margin-top: 12px;
+            color: var(--muted);
+            font-size: 13px;
+            line-height: 1.5;
         }
         .camera-actions {
             display: grid;

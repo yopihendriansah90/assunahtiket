@@ -115,28 +115,35 @@
                     <section class="panel">
                         <div class="panel-header">
                             <h2>Scan QR Code (Kamera)</h2>
-                            <span class="badge badge-success">Kamera Aktif</span>
+                            <span id="camera-status-badge" class="badge badge-warning camera-status">
+                                <span class="camera-status-dot"></span>
+                                <span id="camera-status-text">Menyiapkan Kamera</span>
+                            </span>
                         </div>
                         <div class="panel-body">
-                            <div class="camera-frame">
+                            <div class="camera-frame" id="camera-frame">
+                                <div id="camera-reader" class="camera-reader is-hidden" aria-hidden="true"></div>
                                 <span class="camera-corner tl"></span>
                                 <span class="camera-corner tr"></span>
                                 <span class="camera-corner bl"></span>
                                 <span class="camera-corner br"></span>
-                                <div class="camera-placeholder">
+                                <div class="camera-placeholder" id="camera-placeholder">
                                     <div>
-                                        <div class="badge" style="background: rgba(255,255,255,0.12); color: #fff;">Preview Kamera</div>
-                                        <strong>Siapkan scanner QR</strong>
-                                        <div style="margin-top: 8px; color: rgba(255,255,255,0.78);">
+                                        <div class="badge" style="background: rgba(255,255,255,0.12); color: #fff;" id="camera-placeholder-badge">Preview Kamera</div>
+                                        <strong id="camera-placeholder-title">Siapkan scanner QR</strong>
+                                        <div style="margin-top: 8px; color: rgba(255,255,255,0.78);" id="camera-placeholder-message">
                                             Area ini akan dipakai untuk kamera scan dan input barcode USB.
                                         </div>
                                     </div>
                                 </div>
                             </div>
+                            <div id="camera-message" class="camera-message">
+                                Sistem akan mencoba memakai webcam yang tersedia untuk scan QR secara otomatis.
+                            </div>
 
                             <div class="camera-actions">
-                                <button type="button" class="button button-primary">Hentikan Kamera</button>
-                                <button type="button" class="button button-ghost">Ganti Kamera</button>
+                                <button type="button" class="button button-primary" id="camera-toggle-button">Hentikan Kamera</button>
+                                <button type="button" class="button button-ghost" id="camera-switch-button">Ganti Kamera</button>
                             </div>
                         </div>
                     </section>
@@ -345,10 +352,26 @@
                 const scanResultMessage = document.getElementById('scan-result-message');
                 const enterButton = document.getElementById('gate-scan-mode-enter');
                 const autoButton = document.getElementById('gate-scan-mode-auto');
+                const cameraReader = document.getElementById('camera-reader');
+                const cameraPlaceholder = document.getElementById('camera-placeholder');
+                const cameraStatusBadge = document.getElementById('camera-status-badge');
+                const cameraStatusText = document.getElementById('camera-status-text');
+                const cameraMessage = document.getElementById('camera-message');
+                const cameraToggleButton = document.getElementById('camera-toggle-button');
+                const cameraSwitchButton = document.getElementById('camera-switch-button');
+                const cameraPlaceholderBadge = document.getElementById('camera-placeholder-badge');
+                const cameraPlaceholderTitle = document.getElementById('camera-placeholder-title');
+                const cameraPlaceholderMessage = document.getElementById('camera-placeholder-message');
                 const modeKey = 'gate.scan.mode';
                 const recentScansUrl = '{{ route('gate.recent-scans', ['gate' => $activeGate?->id]) }}';
                 let submitTimer = null;
                 let mode = localStorage.getItem(modeKey) || 'enter';
+                let html5QrCode = null;
+                let cameraDevices = [];
+                let activeCameraIndex = 0;
+                let isSubmittingScan = false;
+                let cameraEnabled = true;
+                let isCameraRunning = false;
 
                 if (! input || ! form) {
                     return;
@@ -364,11 +387,170 @@
                 };
 
                 const submitScan = () => {
-                    if (input.value.trim() === '') {
+                    if (input.value.trim() === '' || isSubmittingScan) {
                         return;
                     }
 
                     form.requestSubmit();
+                };
+
+                const setCameraStatus = (type, text, message = null) => {
+                    if (cameraStatusBadge) {
+                        cameraStatusBadge.classList.remove('badge-success', 'badge-warning');
+                        cameraStatusBadge.classList.add(type === 'success' ? 'badge-success' : 'badge-warning');
+                    }
+
+                    if (cameraStatusText) {
+                        cameraStatusText.textContent = text;
+                    }
+
+                    if (cameraMessage && message !== null) {
+                        cameraMessage.textContent = message;
+                    }
+                };
+
+                const setCameraPlaceholder = (title, message, badge = 'Preview Kamera') => {
+                    if (cameraPlaceholderTitle) {
+                        cameraPlaceholderTitle.textContent = title;
+                    }
+
+                    if (cameraPlaceholderMessage) {
+                        cameraPlaceholderMessage.textContent = message;
+                    }
+
+                    if (cameraPlaceholderBadge) {
+                        cameraPlaceholderBadge.textContent = badge;
+                    }
+                };
+
+                const showCameraPreview = (show) => {
+                    cameraReader?.classList.toggle('is-hidden', ! show);
+                    cameraPlaceholder?.classList.toggle('is-hidden', show);
+                };
+
+                const stopCameraStream = async () => {
+                    if (! html5QrCode || ! isCameraRunning) {
+                        return;
+                    }
+
+                    try {
+                        await html5QrCode.stop();
+                    } catch (error) {
+                        // ignore stop errors
+                    }
+
+                    try {
+                        html5QrCode.clear();
+                    } catch (error) {
+                        // ignore clear errors
+                    }
+
+                    isCameraRunning = false;
+                };
+
+                const startCameraStream = async () => {
+                    if (! cameraReader) {
+                        return;
+                    }
+
+                    const scannerLib = window.GateScannerLib;
+
+                    if (! scannerLib?.Html5Qrcode) {
+                        setCameraStatus('warning', 'Scanner Tidak Tersedia', 'Library scanner QR belum termuat dengan benar.');
+                        setCameraPlaceholder('Scanner tidak tersedia', 'Muat ulang halaman lalu coba lagi. Jika masih gagal, periksa asset frontend aplikasi.', 'Scanner Tidak Tersedia');
+                        return;
+                    }
+
+                    if (! ('mediaDevices' in navigator) || ! navigator.mediaDevices.getUserMedia) {
+                        setCameraStatus('warning', 'Kamera Tidak Didukung', 'Browser ini tidak mendukung akses webcam untuk scan QR.');
+                        setCameraPlaceholder('Browser tidak mendukung kamera', 'Gunakan browser modern yang mendukung akses webcam.', 'Kamera Tidak Tersedia');
+                        cameraToggleButton?.setAttribute('disabled', 'disabled');
+                        cameraSwitchButton?.setAttribute('disabled', 'disabled');
+                        return;
+                    }
+
+                    if (! html5QrCode) {
+                        html5QrCode = new scannerLib.Html5Qrcode('camera-reader', {
+                            formatsToSupport: [scannerLib.Html5QrcodeSupportedFormats.QR_CODE],
+                            useBarCodeDetectorIfSupported: false,
+                            verbose: false,
+                        });
+                    }
+
+                    try {
+                        cameraDevices = await scannerLib.Html5Qrcode.getCameras();
+
+                        cameraSwitchButton?.toggleAttribute('disabled', cameraDevices.length <= 1);
+
+                        const selectedDevice = cameraDevices[activeCameraIndex] ?? cameraDevices[0] ?? null;
+
+                        await stopCameraStream();
+                        setCameraStatus('warning', 'Menyalakan Kamera', 'Meminta izin akses webcam untuk scanner QR.');
+
+                        if (! selectedDevice) {
+                            throw new Error('Tidak ada kamera yang tersedia.');
+                        }
+
+                        await html5QrCode.start(
+                            selectedDevice.id,
+                            {
+                                fps: 10,
+                                qrbox: { width: 240, height: 240 },
+                                aspectRatio: 4 / 3,
+                                disableFlip: false,
+                            },
+                            (decodedText) => {
+                                if (isSubmittingScan || input.value.trim() !== '') {
+                                    return;
+                                }
+
+                                input.value = decodedText.trim();
+                                submitScan();
+                            },
+                            () => {
+                                // ignore scan misses
+                            },
+                        );
+
+                        showCameraPreview(true);
+                        setCameraPlaceholder('Kamera aktif', 'Arahkan QR code ke area kamera untuk scan otomatis.', 'Kamera Aktif');
+                        setCameraStatus('success', 'Kamera Aktif', selectedDevice?.label ? `Kamera aktif: ${selectedDevice.label}` : 'Kamera aktif dan siap untuk scan QR.');
+                        cameraToggleButton?.removeAttribute('disabled');
+                        cameraToggleButton && (cameraToggleButton.textContent = 'Hentikan Kamera');
+                        cameraEnabled = true;
+                        isCameraRunning = true;
+                    } catch (error) {
+                        showCameraPreview(false);
+                        setCameraStatus('warning', 'Kamera Tidak Aktif', 'Izin kamera ditolak, webcam tidak bisa diakses, atau scanner gagal dijalankan.');
+                        setCameraPlaceholder('Kamera tidak dapat diakses', 'Periksa izin browser, koneksi webcam USB, lalu coba lagi. Jika webcam test berjalan, kemungkinan izin kamera untuk situs ini belum diberikan.', 'Kamera Tidak Aktif');
+                    }
+                };
+
+                const toggleCamera = async () => {
+                    cameraEnabled = ! cameraEnabled;
+
+                    if (cameraEnabled) {
+                        await startCameraStream();
+                        return;
+                    }
+
+                    await stopCameraStream();
+                    showCameraPreview(false);
+                    setCameraStatus('warning', 'Kamera Dimatikan', 'Kamera dimatikan. Anda masih bisa scan dengan USB scanner atau input manual.');
+                    setCameraPlaceholder('Kamera dimatikan', 'Klik tombol nyalakan kembali untuk memakai webcam sebagai scanner QR.', 'Kamera Nonaktif');
+                    if (cameraToggleButton) {
+                        cameraToggleButton.textContent = 'Nyalakan Kamera';
+                    }
+                };
+
+                const switchCamera = async () => {
+                    if (cameraDevices.length <= 1) {
+                        return;
+                    }
+
+                    activeCameraIndex = (activeCameraIndex + 1) % cameraDevices.length;
+                    cameraEnabled = true;
+                    await startCameraStream();
                 };
 
                 const setScanField = (key, value) => {
@@ -501,6 +683,7 @@
                     }
 
                     try {
+                        isSubmittingScan = true;
                         const response = await fetch(form.action, {
                             method: 'POST',
                             headers: {
@@ -519,12 +702,24 @@
                         applyScanResult(payload);
                     } catch (error) {
                         // ignore polling errors
+                    } finally {
+                        isSubmittingScan = false;
                     }
                 });
 
                 syncMode();
                 input.focus();
                 input.select();
+                cameraToggleButton?.addEventListener('click', () => {
+                    toggleCamera();
+                });
+                cameraSwitchButton?.addEventListener('click', () => {
+                    switchCamera();
+                });
+                window.addEventListener('beforeunload', () => {
+                    stopCameraStream();
+                });
+                startCameraStream();
 
                 const refreshStats = async () => {
                     if (! dashboard) {

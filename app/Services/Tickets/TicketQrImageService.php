@@ -18,6 +18,7 @@ use RuntimeException;
 class TicketQrImageService
 {
     private string $disk = 'public';
+    private const TICKET_SEQUENCE_PADDING = 3;
 
     private const QR_LABEL_HEADER_HEIGHT = 72;
 
@@ -133,8 +134,8 @@ class TicketQrImageService
     protected function makeTicketCode(Student $student): string
     {
         $prefix = $student->event?->settings?->ticket_code_prefix
-            ?? $student->event?->code
-            ?? 'TKT';
+            ?: $student->event?->code
+            ?: 'TKT';
 
         $prefix = Str::of($prefix)
             ->ascii()
@@ -143,8 +144,36 @@ class TicketQrImageService
             ->toString();
 
         $prefix = $prefix !== '' ? $prefix : 'TKT';
+        $sequence = $this->nextTicketSequenceNumber($student);
 
-        return sprintf('%s-%05d', $prefix, $student->getKey());
+        return sprintf('%s-%0' . self::TICKET_SEQUENCE_PADDING . 'd', $prefix, $sequence);
+    }
+
+    protected function nextTicketSequenceNumber(Student $student): int
+    {
+        $startingSequence = max(1, (int) ($student->event?->settings?->ticket_sequence_start ?? 1));
+
+        $existingSequences = Ticket::query()
+            ->where('event_id', $student->event_id)
+            ->lockForUpdate()
+            ->pluck('ticket_code')
+            ->map(fn (?string $ticketCode): int => $this->extractTicketSequenceNumber($ticketCode))
+            ->filter(fn (int $sequence): bool => $sequence > 0);
+
+        if ($existingSequences->isEmpty()) {
+            return $startingSequence;
+        }
+
+        return max($startingSequence, $existingSequences->max() + 1);
+    }
+
+    protected function extractTicketSequenceNumber(?string $ticketCode): int
+    {
+        if (preg_match('/(\d+)$/', (string) $ticketCode, $matches) !== 1) {
+            return 0;
+        }
+
+        return (int) $matches[1];
     }
 
     protected function makeQrToken(): string

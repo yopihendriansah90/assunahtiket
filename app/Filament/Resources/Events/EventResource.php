@@ -53,9 +53,22 @@ class EventResource extends Resource
     {
         $query = parent::getEloquentQuery();
         $user = auth()->user();
+        $panelId = Filament::getCurrentPanel()?->getId();
 
         if (! $user || $user->can('ViewAny:Event') === false) {
             return $query->whereRaw('1 = 0');
+        }
+
+        if ($panelId === 'picsekolah' && ! $user->hasRole('super_admin')) {
+            return $query->where(function (Builder $builder) use ($user): void {
+                $builder
+                    ->whereHas('assignedUsers', function (Builder $assignedUsersQuery) use ($user): void {
+                        $assignedUsersQuery->whereKey($user->getKey());
+                    })
+                    ->orWhereHas('classes.assignedUsers', function (Builder $assignedClassUsersQuery) use ($user): void {
+                        $assignedClassUsersQuery->whereKey($user->getKey());
+                    });
+            });
         }
 
         return $query;

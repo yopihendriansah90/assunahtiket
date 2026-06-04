@@ -51,7 +51,7 @@ class EventForm
                         TextInput::make('ticket_code_prefix')
                             ->label('Prefix Kode Tiket')
                             ->placeholder('Contoh: GTR')
-                            ->helperText('Jika diisi, kode tiket akan diawali prefix ini. Jika kosong, sistem memakai kode acara.')
+                            ->helperText('Kode tiket akan diawali prefix ini. Jika kosong, sistem memakai kode acara.')
                             ->live(debounce: 0)
                             ->maxLength(50),
                         TextInput::make('ticket_sequence_start')
@@ -59,7 +59,7 @@ class EventForm
                             ->numeric()
                             ->default(1)
                             ->minValue(1)
-                            ->helperText('Saat ini dipakai sebagai referensi urutan tiket acara.')
+                            ->helperText('Nomor ini dipakai sebagai urutan awal tiket pada acara ini.')
                             ->live(debounce: 0)
                             ->required(),
                         Placeholder::make('ticket_code_preview')
@@ -80,7 +80,7 @@ class EventForm
 
                                 $sequenceStart = max(1, (int) ($get('ticket_sequence_start') ?? 1));
 
-                                return sprintf('%s-%05d', $prefix, $sequenceStart);
+                                return sprintf('%s-%03d', $prefix, $sequenceStart);
                             })
                             ->helperText('Contoh kode tiket pertama yang akan dibuat untuk acara ini.'),
                     ])

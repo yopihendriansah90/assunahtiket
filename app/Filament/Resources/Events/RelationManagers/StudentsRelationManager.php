@@ -5,6 +5,7 @@ namespace App\Filament\Resources\Events\RelationManagers;
 use App\Filament\Actions\DownloadStudentTicketQrAction;
 use App\Models\Student;
 use App\Services\Tickets\TicketQrZipExportService;
+use Filament\Facades\Filament;
 use Filament\Actions\BulkAction;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\CreateAction;
@@ -20,6 +21,7 @@ use Filament\Tables\Columns\SelectColumn;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 
@@ -44,6 +46,53 @@ class StudentsRelationManager extends RelationManager
     private function canBypassEventLock(): bool
     {
         return auth()->user()?->hasRole('super_admin') ?? false;
+    }
+
+    private function shouldRestrictToAssignedClasses(): bool
+    {
+        $user = auth()->user();
+
+        return Filament::getCurrentPanel()?->getId() === 'picsekolah'
+            && $user !== null
+            && ! $user->hasRole('super_admin');
+    }
+
+    private function getAssignedClassIds(): array
+    {
+        $user = auth()->user();
+
+        if (! $this->shouldRestrictToAssignedClasses() || $user === null) {
+            return [];
+        }
+
+        return $user->assignedClasses()
+            ->where('event_id', $this->getOwnerRecord()->getKey())
+            ->pluck('classes.id')
+            ->all();
+    }
+
+    private function canAccessStudent(Student $student): bool
+    {
+        if (! $this->shouldRestrictToAssignedClasses()) {
+            return true;
+        }
+
+        return in_array($student->class_id, $this->getAssignedClassIds(), true);
+    }
+
+    private function ensureSelectedStudentsAreAccessible(Collection $students): void
+    {
+        if (! $this->shouldRestrictToAssignedClasses()) {
+            return;
+        }
+
+        $assignedClassIds = $this->getAssignedClassIds();
+
+        $hasUnauthorizedStudent = $students->contains(
+            fn (Student $student): bool => ! in_array($student->class_id, $assignedClassIds, true),
+        );
+
+        abort_if($hasUnauthorizedStudent, 403);
     }
 
     public static function canViewForRecord(Model $ownerRecord, string $pageClass): bool
@@ -74,10 +123,18 @@ class StudentsRelationManager extends RelationManager
                     ->relationship(
                         name: 'eventClass',
                         titleAttribute: 'name',
-                        modifyQueryUsing: fn (Builder $query) => $query
-                            ->where('event_id', $this->getOwnerRecord()->id)
-                            ->orderBy('sort_order')
-                            ->orderBy('name'),
+                        modifyQueryUsing: function (Builder $query): Builder {
+                            $query
+                                ->where('event_id', $this->getOwnerRecord()->id)
+                                ->orderBy('sort_order')
+                                ->orderBy('name');
+
+                            if ($this->shouldRestrictToAssignedClasses()) {
+                                $query->whereIn('classes.id', $this->getAssignedClassIds());
+                            }
+
+                            return $query;
+                        },
                     )
                     ->required()
                     ->searchable()
@@ -163,6 +220,10 @@ class StudentsRelationManager extends RelationManager
                     return $query->whereRaw('1 = 0');
                 }
 
+                if ($this->shouldRestrictToAssignedClasses()) {
+                    return $query->whereIn('class_id', $this->getAssignedClassIds());
+                }
+
                 return $query;
             })
             ->recordTitleAttribute('name')
@@ -194,7 +255,13 @@ class StudentsRelationManager extends RelationManager
             ->filters([
                 SelectFilter::make('class_id')
                     ->label('Kelas')
-                    ->relationship('eventClass', 'name')
+                    ->relationship('eventClass', 'name', function (Builder $query): Builder {
+                        if ($this->shouldRestrictToAssignedClasses()) {
+                            $query->whereIn('classes.id', $this->getAssignedClassIds());
+                        }
+
+                        return $query;
+                    })
                     ->searchable()
                     ->preload(),
                 SelectFilter::make('gender')
@@ -216,7 +283,8 @@ class StudentsRelationManager extends RelationManager
                 ),
             ])
             ->recordActions([
-                DownloadStudentTicketQrAction::make(),
+                DownloadStudentTicketQrAction::make()
+                    ->visible(fn (Student $record): bool => $this->canAccessStudent($record)),
                 ...(
                     $isLocked && ! $canBypassLock
                         ? []
@@ -252,6 +320,7 @@ class StudentsRelationManager extends RelationManager
 
                                         $service = app(TicketQrZipExportService::class);
                                         $selectedRecords = $action->getSelectedRecords();
+                                        $this->ensureSelectedStudentsAreAccessible($selectedRecords);
                                         $archiveBaseName = 'qr-tiket-' . $this->getOwnerRecord()->code . '-selected-' . now()->format('Ymd-His');
 
                                         return response()

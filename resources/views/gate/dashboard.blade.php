@@ -379,7 +379,7 @@
                     Tiket valid dan check-in berhasil diproses.
                 </p>
                 <div id="scan-feedback-meta" class="scan-modal-meta">
-                    Notifikasi ini akan tertutup otomatis dalam 3 detik.
+                    Notifikasi ini akan tertutup otomatis dalam 5 detik.
                 </div>
             </div>
         </div>
@@ -428,6 +428,7 @@
                 let isCameraRunning = false;
                 let feedbackModalTimer = null;
                 let feedbackModalCountdownTimer = null;
+                let scanCooldownUntil = 0;
 
                 if (! input || ! form) {
                     return;
@@ -443,7 +444,7 @@
                 };
 
                 const submitScan = () => {
-                    if (input.value.trim() === '' || isSubmittingScan) {
+                    if (input.value.trim() === '' || isSubmittingScan || Date.now() < scanCooldownUntil) {
                         return;
                     }
 
@@ -598,7 +599,7 @@
                                 disableFlip: false,
                             },
                             (decodedText) => {
-                                if (isSubmittingScan || input.value.trim() !== '') {
+                                if (isSubmittingScan || input.value.trim() !== '' || Date.now() < scanCooldownUntil) {
                                     return;
                                 }
 
@@ -710,7 +711,7 @@
                     scanFeedbackTitle.textContent = variant.title;
                     scanFeedbackMessage.textContent = message || variant.meta;
 
-                    let countdown = 3;
+                    let countdown = 5;
 
                     if (scanFeedbackMeta) {
                         scanFeedbackMeta.textContent = `Notifikasi ini akan tertutup otomatis dalam ${countdown} detik.`;
@@ -734,7 +735,7 @@
 
                     feedbackModalTimer = window.setTimeout(() => {
                         hideFeedbackModal();
-                    }, 3000);
+                    }, 5000);
                 };
 
                 const applyScanResult = (payload) => {
@@ -818,6 +819,7 @@
                         }
                     }
 
+                    scanCooldownUntil = Date.now() + 5000;
                     showFeedbackModal(status, result.message || null);
                     input.value = '';
                     input.focus();

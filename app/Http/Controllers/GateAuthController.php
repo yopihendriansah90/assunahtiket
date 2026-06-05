@@ -328,7 +328,7 @@ class GateAuthController extends Controller
 
         $historyScans = (clone $historyQuery)
             ->latest('scanned_at')
-            ->paginate(20)
+            ->paginate(10)
             ->withQueryString();
 
         $todayStatsBase = ScanAttempt::query()

@@ -51,7 +51,9 @@
             <div class="gate-desktop-sidebar-head">
                 <h1 class="gate-desktop-sidebar-title">Gate Manager</h1>
                 <div class="gate-desktop-gate-card">
-                    <div class="gate-desktop-gate-icon">⌁</div>
+                    <div class="gate-desktop-gate-icon" aria-hidden="true">
+                        <x-carbon-ibm-engineering-requirements-doors-next class="gate-desktop-gate-icon-svg" />
+                    </div>
                     <div>
                         <div class="gate-desktop-gate-name">{{ $activeGate?->name ?? 'Gate Aktif' }}</div>
                         <div class="gate-desktop-gate-event">{{ $activeGate?->event?->name ?? 'Pilih gate aktif' }}</div>
@@ -87,7 +89,9 @@
         <div class="gate-desktop-content">
         <header class="gate-mobile-topbar">
             <div class="gate-mobile-title-wrap gate-desktop-title-wrap">
-                <div class="gate-mobile-logo">⌁</div>
+                <div class="gate-mobile-logo" aria-hidden="true">
+                    <x-carbon-ibm-engineering-requirements-doors-next class="gate-desktop-gate-icon-svg" />
+                </div>
                 <div>
                     <h1 class="gate-mobile-title">{{ $activeGate?->name ?? 'Dashboard Gate' }}</h1>
                     <p class="gate-mobile-subtitle">{{ $activeGate?->event?->name ?? 'Pilih gate dan siapkan proses scan QR.' }}</p>

@@ -501,6 +501,7 @@
             font-size: 24px;
             font-weight: 800;
             flex: 0 0 auto;
+            padding: 0;
         }
         .gate-mobile-title {
             margin: 0;
@@ -556,6 +557,7 @@
         }
         .gate-mobile-settings-logout {
             width: 100%;
+            border: 1px solid var(--primary-soft-border);
         }
         .gate-mobile-empty {
             margin: 16px;
@@ -905,6 +907,9 @@
         .gate-history-main {
             gap: 20px;
         }
+        .gate-history-mobile-stack {
+            display: contents;
+        }
         .gate-history-search {
             gap: 14px;
         }
@@ -1013,6 +1018,12 @@
         .gate-history-pagination svg {
             width: 16px;
             height: 16px;
+        }
+        .gate-history-desktop-header,
+        .gate-history-desktop-filters,
+        .gate-history-desktop-table-card,
+        .gate-history-desktop-stats {
+            display: none;
         }
         .mode-option {
             border: 0;
@@ -1602,6 +1613,15 @@
                 font-size: 24px;
                 font-weight: 800;
                 flex: 0 0 auto;
+                padding: 0;
+            }
+            .gate-desktop-gate-icon-svg {
+                width: 18px;
+                height: 18px;
+                color: currentColor;
+                display: block;
+                flex: 0 0 auto;
+                transform: translateX(0.5px);
             }
             .gate-desktop-gate-name {
                 font-size: 20px;
@@ -1714,7 +1734,7 @@
                 top: calc(100% + 14px);
             }
             .gate-mobile-main.gate-desktop-main {
-                grid-template-columns: minmax(0, 1fr) 360px;
+                grid-template-columns: minmax(0, 1fr) minmax(320px, 360px);
                 grid-template-areas:
                     "camera recent"
                     "controls recent";
@@ -1724,15 +1744,18 @@
             }
             .gate-desktop-camera-panel {
                 grid-area: camera;
+                min-width: 0;
             }
             .gate-desktop-controls {
                 grid-area: controls;
                 display: grid;
                 grid-template-columns: repeat(2, minmax(0, 1fr));
                 gap: 24px;
+                min-width: 0;
             }
             .gate-desktop-recent-panel {
                 grid-area: recent;
+                min-width: 0;
                 align-self: stretch;
                 grid-template-rows: auto minmax(0, 1fr) auto;
                 min-height: calc(100vh - 170px);
@@ -1755,6 +1778,8 @@
                 color: var(--text-heading);
             }
             .gate-mobile-camera-frame {
+                width: 100%;
+                max-width: 100%;
                 aspect-ratio: 16 / 9;
                 min-height: 460px;
                 border-radius: 20px;
@@ -1799,6 +1824,253 @@
                 justify-content: center;
                 margin-top: 8px;
             }
+            .gate-history-desktop-main {
+                display: grid;
+                gap: 24px;
+                padding: 30px;
+            }
+            .gate-history-mobile-stack {
+                display: none;
+            }
+            .gate-history-desktop-header,
+            .gate-history-desktop-filters,
+            .gate-history-desktop-table-card,
+            .gate-history-desktop-stats {
+                display: block;
+            }
+            .gate-history-desktop-header {
+                display: flex;
+                align-items: end;
+                justify-content: space-between;
+                gap: 20px;
+            }
+            .gate-history-desktop-title {
+                margin: 0;
+                font-size: 46px;
+                line-height: 1.05;
+                font-weight: 800;
+                color: var(--text-heading);
+            }
+            .gate-history-desktop-copy {
+                margin: 10px 0 0;
+                font-size: 18px;
+                line-height: 1.5;
+                color: var(--text-soft-2);
+            }
+            .gate-history-desktop-actions {
+                display: flex;
+                align-items: center;
+                gap: 12px;
+                flex-wrap: wrap;
+            }
+            .gate-history-desktop-refresh {
+                border: 1px solid var(--primary-soft-border);
+                background: var(--surface);
+            }
+            .gate-history-desktop-filters {
+                padding: 20px;
+                border: 1px solid var(--border-soft);
+                border-radius: 20px;
+                background: color-mix(in srgb, var(--surface-soft) 42%, var(--surface) 58%);
+            }
+            .gate-history-desktop-filter-form {
+                display: grid;
+                gap: 18px;
+            }
+            .gate-history-desktop-search {
+                position: relative;
+            }
+            .gate-history-desktop-search .gate-mobile-search-icon {
+                left: 16px;
+            }
+            .gate-history-desktop-search-input {
+                min-height: 56px;
+                padding-left: 48px;
+                font-size: 17px;
+            }
+            .gate-history-desktop-filter-grid {
+                display: grid;
+                grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) auto;
+                gap: 16px;
+                align-items: end;
+            }
+            .gate-history-desktop-filter-field {
+                display: grid;
+                gap: 8px;
+            }
+            .gate-history-desktop-filter-field span {
+                font-size: 12px;
+                font-weight: 700;
+                letter-spacing: 0.06em;
+                text-transform: uppercase;
+                color: var(--text-soft);
+            }
+            .gate-history-desktop-select {
+                width: 100%;
+                min-height: 52px;
+                padding: 0 14px;
+                border: 1px solid var(--line);
+                border-radius: 14px;
+                background: var(--surface);
+                color: var(--text);
+                font: inherit;
+                font-size: 15px;
+            }
+            .gate-history-desktop-filter-actions {
+                display: flex;
+                align-items: center;
+                gap: 12px;
+            }
+            .gate-history-desktop-clear {
+                border: 1px solid var(--primary-soft-border);
+                background: var(--surface);
+            }
+            .gate-history-desktop-table-card {
+                border: 1px solid var(--border-soft);
+                border-radius: 22px;
+                overflow: hidden;
+                background: var(--surface);
+            }
+            .gate-history-desktop-table-wrap {
+                overflow-x: auto;
+            }
+            .gate-history-desktop-table {
+                width: 100%;
+                border-collapse: collapse;
+            }
+            .gate-history-desktop-table thead th {
+                padding: 22px 24px;
+                border-bottom: 1px solid var(--border-soft);
+                background: color-mix(in srgb, var(--surface-soft) 68%, var(--surface) 32%);
+                color: var(--text-soft);
+                font-size: 13px;
+                font-weight: 800;
+                letter-spacing: 0.06em;
+                text-transform: uppercase;
+                text-align: left;
+                white-space: nowrap;
+            }
+            .gate-history-desktop-table tbody td {
+                padding: 22px 24px;
+                border-bottom: 1px solid var(--border-soft);
+                font-size: 16px;
+                line-height: 1.5;
+                color: var(--text);
+                vertical-align: middle;
+            }
+            .gate-history-desktop-rownum {
+                width: 72px;
+                font-weight: 700;
+                color: var(--text-soft);
+                white-space: nowrap;
+            }
+            .gate-history-desktop-table tbody tr:last-child td {
+                border-bottom: 0;
+            }
+            .gate-history-desktop-person {
+                display: flex;
+                align-items: center;
+                gap: 12px;
+                min-width: 220px;
+            }
+            .gate-history-desktop-avatar {
+                width: 40px;
+                height: 40px;
+                display: grid;
+                place-items: center;
+                border-radius: 999px;
+                font-size: 13px;
+                font-weight: 800;
+                flex: 0 0 auto;
+            }
+            .gate-history-desktop-person-name {
+                font-size: 16px;
+                font-weight: 700;
+                color: var(--text-heading);
+            }
+            .gate-history-desktop-person-meta {
+                margin-top: 2px;
+                font-size: 13px;
+                color: var(--text-soft-2);
+            }
+            .gate-history-desktop-mono {
+                font-size: 14px;
+                font-weight: 600;
+                letter-spacing: 0.02em;
+                color: var(--text-soft);
+            }
+            .gate-history-desktop-status {
+                display: inline-flex;
+                align-items: center;
+                gap: 8px;
+                font-size: 15px;
+                font-weight: 700;
+            }
+            .gate-history-desktop-status-dot {
+                width: 10px;
+                height: 10px;
+                border-radius: 999px;
+                background: currentColor;
+            }
+            .gate-history-desktop-table-footer {
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                gap: 16px;
+                padding: 20px 24px;
+                border-top: 1px solid var(--border-soft);
+                background: color-mix(in srgb, var(--surface-soft) 68%, var(--surface) 32%);
+            }
+            .gate-history-desktop-table-count {
+                font-size: 15px;
+                color: var(--text-soft);
+            }
+            .gate-history-desktop-pagination nav {
+                justify-content: end;
+            }
+            .gate-history-desktop-stats {
+                display: grid;
+                grid-template-columns: minmax(0, 1.35fr) repeat(3, minmax(0, 1fr));
+                gap: 20px;
+            }
+            .gate-history-desktop-stat-card {
+                display: grid;
+                gap: 10px;
+                min-height: 164px;
+                padding: 24px;
+                border: 1px solid var(--border-soft);
+                border-radius: 22px;
+                background: color-mix(in srgb, var(--surface-soft) 68%, var(--surface) 32%);
+            }
+            .gate-history-desktop-stat-card span {
+                font-size: 13px;
+                font-weight: 800;
+                letter-spacing: 0.08em;
+                text-transform: uppercase;
+                color: var(--text-soft);
+            }
+            .gate-history-desktop-stat-card strong {
+                font-size: 48px;
+                line-height: 1;
+                font-weight: 800;
+                color: var(--text-heading);
+                align-self: end;
+            }
+            .gate-history-desktop-stat-card.is-primary {
+                background: linear-gradient(135deg, color-mix(in srgb, var(--desktop-sidebar-bg) 92%, #000 8%) 0%, color-mix(in srgb, var(--desktop-sidebar-bg) 72%, var(--primary) 28%) 100%);
+                border-color: color-mix(in srgb, var(--desktop-sidebar-bg) 80%, var(--primary) 20%);
+            }
+            .gate-history-desktop-stat-card.is-primary span,
+            .gate-history-desktop-stat-card.is-primary strong {
+                color: #fff;
+            }
+            .gate-history-desktop-stat-card.is-danger {
+                background: color-mix(in srgb, var(--danger-soft) 72%, var(--surface) 28%);
+                border-color: var(--danger-soft-border);
+            }
+            .gate-history-desktop-stat-card.is-danger strong {
+                color: var(--danger);
+            }
             .gate-bottom-nav {
                 display: none;
             }
@@ -1834,10 +2106,19 @@
                 box-shadow: none;
             }
             .gate-mobile-topbar {
+                position: fixed;
+                top: 0;
+                left: 0;
+                right: 0;
+                z-index: 40;
                 padding-top: max(20px, env(safe-area-inset-top));
             }
             .gate-mobile-main {
+                padding-top: calc(92px + env(safe-area-inset-top));
                 padding-bottom: max(100px, calc(88px + env(safe-area-inset-bottom)));
+            }
+            .gate-bottom-nav {
+                z-index: 40;
             }
         }
         .form-hint {

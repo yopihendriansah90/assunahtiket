@@ -182,12 +182,14 @@
                     <div id="recent-scans-body" class="gate-mobile-recent-list">
                         @forelse ($recentScans as $scan)
                             <article class="gate-mobile-recent-card">
-                                <div class="gate-mobile-recent-icon">✓</div>
-                                <div class="gate-mobile-recent-copy">
-                                    <div class="gate-mobile-recent-name">{{ $scan->ticket?->student?->name ?? '-' }}</div>
-                                    <div class="gate-mobile-recent-meta">{{ $scan->ticket?->ticket_code ?? '-' }} | {{ ucfirst($scan->scan_method ?? 'qr') }}</div>
+                                <div class="gate-mobile-recent-icon gate-history-status-{{ $scan['status'] === 'Invalid' ? 'missing' : ($scan['status'] === 'Sudah Digunakan' ? 'already_scanned' : 'success') }}">
+                                    {{ $scan['status'] === 'Invalid' ? '✕' : ($scan['status'] === 'Sudah Digunakan' ? '!' : '✓') }}
                                 </div>
-                                <div class="gate-mobile-recent-time">{{ $scan->checked_in_at?->format('H:i') ?? '-' }}</div>
+                                <div class="gate-mobile-recent-copy">
+                                    <div class="gate-mobile-recent-name">{{ $scan['student'] ?? '-' }}</div>
+                                    <div class="gate-mobile-recent-meta">{{ $scan['ticket_code'] ?? '-' }} | {{ $scan['status'] ?? '-' }}</div>
+                                </div>
+                                <div class="gate-mobile-recent-time">{{ isset($scan['time']) ? \Illuminate\Support\Str::of($scan['time'])->substr(0, 5) : '-' }}</div>
                             </article>
                         @empty
                             <div class="gate-mobile-empty-history">Belum ada riwayat scan.</div>
@@ -216,6 +218,7 @@
                     <div data-stat-key="ditolak">{{ $gateStats['ditolak'] }}</div>
                 </div>
             </main>
+            @include('gate._bottom_nav', ['activeTab' => 'scanner'])
         @endif
     </div>
 

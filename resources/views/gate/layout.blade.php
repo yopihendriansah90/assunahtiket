@@ -428,7 +428,7 @@
         .gate-mobile-main {
             display: grid;
             gap: 16px;
-            padding: 16px 16px 32px;
+            padding: 16px 16px 100px;
         }
         .gate-mobile-search,
         .gate-mobile-recent {
@@ -668,6 +668,220 @@
         }
         .gate-mobile-hidden-state {
             display: none;
+        }
+        .gate-bottom-nav {
+            position: fixed;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            z-index: 25;
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 8px;
+            padding: 10px 16px calc(10px + env(safe-area-inset-bottom));
+            background: rgba(248, 249, 255, 0.99);
+            backdrop-filter: blur(12px);
+            border-top: 1px solid #dbe3ef;
+        }
+        .gate-bottom-nav-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 3px;
+            min-height: 60px;
+            border-radius: 20px;
+            color: #475569;
+            font-size: 12px;
+            font-weight: 600;
+            transition: background 0.18s ease, color 0.18s ease, transform 0.18s ease;
+        }
+        .gate-bottom-nav-item.is-active {
+            background: transparent;
+            color: #475569;
+            box-shadow: none;
+        }
+        .gate-bottom-nav-icon-wrap {
+            min-width: 64px;
+            min-height: 32px;
+            display: grid;
+            place-items: center;
+            border-radius: 999px;
+        }
+        .gate-bottom-nav-item.is-active .gate-bottom-nav-icon-wrap {
+            background: transparent;
+        }
+        .gate-bottom-nav-icon {
+            font-size: 21px;
+            line-height: 1;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .gate-bottom-nav-label {
+            line-height: 1.1;
+            letter-spacing: 0.01em;
+        }
+        .gate-bottom-nav-icon-qr {
+            position: relative;
+            width: 20px;
+            height: 20px;
+        }
+        .gate-bottom-nav-icon-qr .qr-corner {
+            position: absolute;
+            width: 7px;
+            height: 7px;
+            border: 2px solid currentColor;
+        }
+        .gate-bottom-nav-icon-qr .qr-corner.tl {
+            top: 0;
+            left: 0;
+            border-right: 0;
+            border-bottom: 0;
+            border-top-left-radius: 3px;
+        }
+        .gate-bottom-nav-icon-qr .qr-corner.tr {
+            top: 0;
+            right: 0;
+            border-left: 0;
+            border-bottom: 0;
+            border-top-right-radius: 3px;
+        }
+        .gate-bottom-nav-icon-qr .qr-corner.bl {
+            bottom: 0;
+            left: 0;
+            border-right: 0;
+            border-top: 0;
+            border-bottom-left-radius: 3px;
+        }
+        .gate-bottom-nav-icon-qr .qr-corner.br {
+            right: 0;
+            bottom: 0;
+            border-left: 0;
+            border-top: 0;
+            border-bottom-right-radius: 3px;
+        }
+        .gate-bottom-nav-icon-qr .qr-dot {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 5px;
+            height: 5px;
+            border-radius: 2px;
+            background: currentColor;
+            transform: translate(-50%, -50%);
+        }
+        .gate-history-main {
+            gap: 20px;
+        }
+        .gate-history-search {
+            gap: 14px;
+        }
+        .gate-history-filter-list {
+            display: flex;
+            gap: 8px;
+            overflow-x: auto;
+            scrollbar-width: none;
+        }
+        .gate-history-filter-list::-webkit-scrollbar {
+            display: none;
+        }
+        .gate-history-filter {
+            flex: 0 0 auto;
+            padding: 10px 14px;
+            border-radius: 999px;
+            border: 1px solid #c6d2e4;
+            background: #fff;
+            color: #475569;
+            font-size: 13px;
+            font-weight: 600;
+        }
+        .gate-history-filter.is-active {
+            background: #000;
+            border-color: #000;
+            color: #fff;
+        }
+        .gate-history-stats {
+            display: grid;
+            grid-template-columns: minmax(0, 1.1fr) minmax(0, 0.9fr);
+            gap: 12px;
+        }
+        .gate-history-stat-primary {
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            min-height: 112px;
+            padding: 16px;
+            border-radius: 18px;
+            background: #316bf3;
+            color: #fff;
+        }
+        .gate-history-stat-primary span,
+        .gate-history-stat-mini span {
+            font-size: 12px;
+            font-weight: 600;
+            line-height: 1.4;
+        }
+        .gate-history-stat-primary strong {
+            font-size: 30px;
+            font-weight: 800;
+            line-height: 1;
+        }
+        .gate-history-stat-side {
+            display: grid;
+            gap: 12px;
+        }
+        .gate-history-stat-mini {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 14px 16px;
+            border-radius: 16px;
+            background: #e5eeff;
+            color: #0b1c30;
+        }
+        .gate-history-stat-mini.is-alt {
+            background: #eff4ff;
+        }
+        .gate-history-stat-mini.is-danger {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+        .gate-history-stat-mini strong {
+            font-size: 16px;
+            font-weight: 800;
+        }
+        .gate-history-card {
+            align-items: start;
+        }
+        .gate-history-card-submeta {
+            margin-top: 4px;
+            font-size: 12px;
+            line-height: 1.45;
+            color: #7b8190;
+        }
+        .gate-history-status-success {
+            background: #ecfdf5;
+            color: #059669;
+        }
+        .gate-history-status-already_scanned {
+            background: #fff7ed;
+            color: #d97706;
+        }
+        .gate-history-status-missing {
+            background: #fef2f2;
+            color: #dc2626;
+        }
+        .gate-history-pagination {
+            padding-top: 8px;
+        }
+        .gate-history-pagination nav {
+            display: flex;
+            justify-content: center;
+        }
+        .gate-history-pagination svg {
+            width: 16px;
+            height: 16px;
         }
         .mode-option {
             border: 0;
@@ -1244,7 +1458,7 @@
                 padding-top: max(20px, env(safe-area-inset-top));
             }
             .gate-mobile-main {
-                padding-bottom: max(32px, env(safe-area-inset-bottom));
+                padding-bottom: max(100px, calc(88px + env(safe-area-inset-bottom)));
             }
         }
         .form-hint {
@@ -1266,6 +1480,43 @@
             @yield('content')
         </div>
     </main>
+    <script>
+        (() => {
+            const settingsPanels = Array.from(document.querySelectorAll('.gate-mobile-settings'));
+
+            if (settingsPanels.length === 0) {
+                return;
+            }
+
+            const closeAllSettingsPanels = (except = null) => {
+                settingsPanels.forEach((panel) => {
+                    if (panel !== except) {
+                        panel.removeAttribute('open');
+                    }
+                });
+            };
+
+            document.addEventListener('click', (event) => {
+                const target = event.target;
+                const clickedPanel = target instanceof Element
+                    ? target.closest('.gate-mobile-settings')
+                    : null;
+
+                if (clickedPanel) {
+                    closeAllSettingsPanels(clickedPanel);
+                    return;
+                }
+
+                closeAllSettingsPanels();
+            });
+
+            document.addEventListener('keydown', (event) => {
+                if (event.key === 'Escape') {
+                    closeAllSettingsPanels();
+                }
+            });
+        })();
+    </script>
     @stack('scripts')
 </body>
 </html>

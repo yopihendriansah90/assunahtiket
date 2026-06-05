@@ -16,6 +16,7 @@ Route::prefix('gate')->name('gate.')->group(function (): void {
 
 Route::middleware('gate.access')->prefix('gate')->name('gate.')->group(function (): void {
     Route::get('/', [GateAuthController::class, 'dashboard'])->name('dashboard');
+    Route::get('/history', [GateAuthController::class, 'history'])->name('history');
     Route::post('/scan', [GateAuthController::class, 'scan'])->name('scan');
     Route::get('/stats', [GateAuthController::class, 'stats'])->name('stats');
     Route::get('/recent-scans', [GateAuthController::class, 'recentScans'])->name('recent-scans');

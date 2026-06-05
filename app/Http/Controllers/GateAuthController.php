@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Checkin;
 use App\Models\EventGate;
+use App\Models\ScanAttempt;
 use App\Models\Student;
 use App\Models\Ticket;
 use Illuminate\Database\Eloquent\Builder;
@@ -89,7 +90,7 @@ class GateAuthController extends Controller
         }
 
         $gateStats = $this->buildGateStats($selectedGate);
-        $recentScans = $this->buildRecentScans($selectedGate);
+        $recentScans = $this->formatRecentScans($this->buildRecentScans($selectedGate));
 
         return view('gate.dashboard', [
             'user' => $user,
@@ -134,19 +135,31 @@ class GateAuthController extends Controller
             ->first();
 
         if (! $ticket) {
+            $scanResult = [
+                'status' => 'missing',
+                'message' => 'Data tiket tidak ditemukan pada event gate aktif.',
+                'gate_id' => $gate->getKey(),
+                'gate_name' => $gate->name,
+                'gate_code' => $gate->code,
+                'query' => $rawQuery,
+                'ticket_id' => null,
+                'checkin_id' => null,
+            ];
+
+            $this->logScanAttempt($scanResult, $gate, $user);
+
+            if ($request->expectsJson()) {
+                return response()->json([
+                    'scanResult' => $this->resolveScanPayload($scanResult),
+                    'gateStats' => $this->buildGateStats($gate),
+                    'recentScans' => $this->formatRecentScans($this->buildRecentScans($gate)),
+                ]);
+            }
+
             return redirect()
                 ->route('gate.dashboard', ['gate' => $gate->getKey()])
                 ->withInput(['q' => $rawQuery])
-                ->with('gate.scan_result', [
-                    'status' => 'missing',
-                    'message' => 'Data tiket tidak ditemukan pada event gate aktif.',
-                    'gate_id' => $gate->getKey(),
-                    'gate_name' => $gate->name,
-                    'gate_code' => $gate->code,
-                    'query' => $rawQuery,
-                    'ticket_id' => null,
-                    'checkin_id' => null,
-                ]);
+                ->with('gate.scan_result', $scanResult);
         }
 
         $scanResult = DB::transaction(function () use ($ticket, $gate, $rawQuery, $user): array {
@@ -202,6 +215,8 @@ class GateAuthController extends Controller
                 'query' => $rawQuery,
             ];
         });
+
+        $this->logScanAttempt($scanResult, $gate, $user);
 
         if ($request->expectsJson()) {
             $scanPayload = $this->resolveScanPayload($scanResult);
@@ -276,6 +291,73 @@ class GateAuthController extends Controller
         ]);
     }
 
+    public function history(Request $request): View
+    {
+        $user = $request->user();
+        $gates = $this->accessibleGatesQuery($user)->get();
+        $selectedGateId = $request->integer('gate');
+        $search = trim((string) $request->query('q', ''));
+        $scanMethod = trim((string) $request->query('method', 'all'));
+
+        $historyQuery = ScanAttempt::query()
+            ->with(['gate', 'event'])
+            ->whereIn('event_gate_id', $gates->pluck('id'));
+
+        if ($selectedGateId > 0 && $gates->contains('id', $selectedGateId)) {
+            $historyQuery->where('event_gate_id', $selectedGateId);
+        }
+
+        if ($search !== '') {
+            $historyQuery->where(function (Builder $query) use ($search): void {
+                $query
+                    ->where('ticket_code', 'like', "%{$search}%")
+                    ->orWhere('student_name', 'like', "%{$search}%")
+                    ->orWhere('query', 'like', "%{$search}%");
+            });
+        }
+
+        if (in_array($scanMethod, ['qr', 'manual', 'success', 'missing', 'already_scanned'], true)) {
+            if (in_array($scanMethod, ['qr', 'manual'], true)) {
+                $historyQuery->where('scan_method', $scanMethod);
+            } else {
+                $historyQuery->where('status', $scanMethod);
+            }
+        } else {
+            $scanMethod = 'all';
+        }
+
+        $historyScans = (clone $historyQuery)
+            ->latest('scanned_at')
+            ->paginate(20)
+            ->withQueryString();
+
+        $todayStatsBase = ScanAttempt::query()
+            ->whereIn('event_gate_id', $gates->pluck('id'))
+            ->whereDate('scanned_at', today());
+
+        if ($selectedGateId > 0 && $gates->contains('id', $selectedGateId)) {
+            $todayStatsBase->where('event_gate_id', $selectedGateId);
+        }
+
+        $todayTotal = (clone $todayStatsBase)->count();
+        $todaySuccess = (clone $todayStatsBase)->where('status', 'success')->count();
+        $todayAlreadyScanned = (clone $todayStatsBase)->where('status', 'already_scanned')->count();
+        $todayMissing = (clone $todayStatsBase)->where('status', 'missing')->count();
+
+        return view('gate.history', [
+            'user' => $user,
+            'gates' => $gates,
+            'selectedGateId' => $selectedGateId,
+            'search' => $search,
+            'scanMethod' => $scanMethod,
+            'historyScans' => $historyScans,
+            'todayTotal' => $todayTotal,
+            'todaySuccess' => $todaySuccess,
+            'todayAlreadyScanned' => $todayAlreadyScanned,
+            'todayMissing' => $todayMissing,
+        ]);
+    }
+
     private function accessibleGatesQuery($user): Builder
     {
         $query = EventGate::query()->with(['event', 'assignedUsers']);
@@ -339,11 +421,9 @@ class GateAuthController extends Controller
             return collect();
         }
 
-        return Checkin::query()
-            ->with(['ticket.student', 'ticket.student.eventClass'])
-            ->where('event_id', $selectedGate->event_id)
+        return ScanAttempt::query()
             ->where('event_gate_id', $selectedGate->getKey())
-            ->latest('checked_in_at')
+            ->latest('scanned_at')
             ->limit(10)
             ->get();
     }
@@ -351,16 +431,51 @@ class GateAuthController extends Controller
     private function formatRecentScans($scans): array
     {
         return collect($scans)
-            ->map(function (Checkin $scan): array {
+            ->map(function (ScanAttempt $scan): array {
                 return [
-                    'time' => $scan->checked_in_at?->format('H:i:s') ?? '-',
-                    'student' => $scan->ticket?->student?->name ?? '-',
-                    'ticket_code' => $scan->ticket?->ticket_code ?? '-',
-                    'status' => ucfirst($scan->scan_method ?? 'qr'),
+                    'time' => $scan->scanned_at?->format('H:i:s') ?? '-',
+                    'student' => $scan->student_name ?: 'Peserta tidak dikenal',
+                    'ticket_code' => $scan->ticket_code ?: ($scan->query ?: '-'),
+                    'status' => $this->mapScanStatusLabel($scan->status, $scan->scan_method),
                 ];
             })
             ->values()
             ->all();
+    }
+
+    private function mapScanStatusLabel(?string $status, ?string $scanMethod = null): string
+    {
+        return match ($status) {
+            'success' => strtoupper($scanMethod ?? 'qr'),
+            'already_scanned' => 'Sudah Digunakan',
+            'missing' => 'Invalid',
+            default => ucfirst((string) ($scanMethod ?? $status ?? 'scan')),
+        };
+    }
+
+    private function logScanAttempt(array $scanResult, EventGate $gate, $user): void
+    {
+        $ticket = filled($scanResult['ticket_id'] ?? null)
+            ? Ticket::query()->with(['student.eventClass'])->find($scanResult['ticket_id'])
+            : null;
+
+        $isQrMethod = $ticket
+            ? mb_strtolower((string) ($scanResult['query'] ?? '')) === mb_strtolower((string) $ticket->qr_token)
+            : false;
+
+        ScanAttempt::query()->create([
+            'event_id' => $ticket?->event_id ?? $gate->event_id,
+            'ticket_id' => $ticket?->getKey(),
+            'event_gate_id' => $gate->getKey(),
+            'user_id' => $user?->getKey(),
+            'query' => $scanResult['query'] ?? null,
+            'status' => $scanResult['status'] ?? 'missing',
+            'scan_method' => $ticket ? ($isQrMethod ? 'qr' : 'manual') : null,
+            'student_name' => $ticket?->student?->name,
+            'class_name' => $ticket?->student?->eventClass?->name,
+            'ticket_code' => $ticket?->ticket_code,
+            'scanned_at' => now(),
+        ]);
     }
 
     private function resolveScanPayload(array $scanResult): array

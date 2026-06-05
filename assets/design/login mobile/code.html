@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+
+<html class="light" lang="id"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "on-background": "#0b1c30",
+                    "on-error": "#ffffff",
+                    "primary-fixed-dim": "#bec6e0",
+                    "on-primary": "#ffffff",
+                    "on-tertiary": "#ffffff",
+                    "on-surface-variant": "#45464d",
+                    "tertiary": "#000000",
+                    "primary-fixed": "#dae2fd",
+                    "on-primary-fixed-variant": "#3f465c",
+                    "tertiary-fixed": "#6ffbbe",
+                    "on-primary-fixed": "#131b2e",
+                    "surface-container": "#e5eeff",
+                    "on-surface": "#0b1c30",
+                    "on-tertiary-container": "#009668",
+                    "on-secondary-fixed": "#00174b",
+                    "on-tertiary-fixed": "#002113",
+                    "primary": "#000000",
+                    "tertiary-fixed-dim": "#4edea3",
+                    "inverse-on-surface": "#eaf1ff",
+                    "error-container": "#ffdad6",
+                    "secondary-fixed": "#dbe1ff",
+                    "on-tertiary-fixed-variant": "#005236",
+                    "on-primary-container": "#7c839b",
+                    "secondary-fixed-dim": "#b4c5ff",
+                    "on-secondary": "#ffffff",
+                    "inverse-primary": "#bec6e0",
+                    "surface": "#f8f9ff",
+                    "outline": "#76777d",
+                    "tertiary-container": "#002113",
+                    "surface-container-high": "#dce9ff",
+                    "error": "#ba1a1a",
+                    "surface-variant": "#d3e4fe",
+                    "primary-container": "#131b2e",
+                    "on-secondary-container": "#fefcff",
+                    "surface-tint": "#565e74",
+                    "surface-container-highest": "#d3e4fe",
+                    "outline-variant": "#c6c6cd",
+                    "surface-dim": "#cbdbf5",
+                    "surface-bright": "#f8f9ff",
+                    "inverse-surface": "#213145",
+                    "secondary": "#0051d5",
+                    "background": "#f8f9ff",
+                    "on-secondary-fixed-variant": "#003ea8",
+                    "on-error-container": "#93000a",
+                    "surface-container-lowest": "#ffffff",
+                    "surface-container-low": "#eff4ff",
+                    "secondary-container": "#316bf3"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.125rem",
+                    "lg": "0.25rem",
+                    "xl": "0.5rem",
+                    "full": "0.75rem"
+            },
+            "spacing": {
+                    "lg": "24px",
+                    "base": "4px",
+                    "xl": "32px",
+                    "margin": "16px",
+                    "md": "16px",
+                    "sm": "8px",
+                    "gutter": "16px",
+                    "xs": "4px"
+            },
+            "fontFamily": {
+                    "label-sm": ["Inter"],
+                    "label-md": ["Inter"],
+                    "display-lg": ["Inter"],
+                    "body-lg": ["Inter"],
+                    "mono-sm": ["Inter"],
+                    "headline-sm": ["Inter"],
+                    "headline-md": ["Inter"],
+                    "body-md": ["Inter"]
+            },
+            "fontSize": {
+                    "label-sm": ["12px", {"lineHeight": "16px", "letterSpacing": "0.02em", "fontWeight": "500"}],
+                    "label-md": ["14px", {"lineHeight": "20px", "letterSpacing": "0.01em", "fontWeight": "600"}],
+                    "display-lg": ["32px", {"lineHeight": "40px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                    "body-lg": ["18px", {"lineHeight": "28px", "fontWeight": "400"}],
+                    "mono-sm": ["13px", {"lineHeight": "18px", "letterSpacing": "0.05em", "fontWeight": "400"}],
+                    "headline-sm": ["20px", {"lineHeight": "28px", "fontWeight": "600"}],
+                    "headline-md": ["24px", {"lineHeight": "32px", "letterSpacing": "-0.01em", "fontWeight": "600"}],
+                    "body-md": ["16px", {"lineHeight": "24px", "fontWeight": "400"}]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f8f9ff;
+        }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .focused-input:focus-within {
+            border-color: #0051d5;
+            box-shadow: 0 0 0 1px #0051d5;
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background text-on-background min-h-screen flex flex-col">
+<!-- Top Navigation Bar (Shared Component Logic) -->
+<header class="w-full top-0 sticky bg-surface border-b border-outline-variant flex items-center justify-center px-margin h-16 z-50">
+<div class="flex items-center gap-sm">
+<span class="material-symbols-outlined text-primary" data-icon="lock">lock</span>
+<h1 class="font-display-lg text-display-lg text-on-background tracking-tight">TICKET SYSTEM</h1>
+</div>
+</header>
+<!-- Main Content Canvas -->
+<main class="flex-grow flex flex-col items-center justify-center px-margin py-xl max-w-md mx-auto w-full">
+<!-- Welcome Header -->
+<div class="w-full text-center mb-xl">
+<h2 class="font-headline-md text-headline-md text-on-background mb-base">Selamat Datang Kembali</h2>
+<p class="font-body-md text-body-md text-on-surface-variant">Silakan masuk ke akun Anda untuk mulai memindai</p>
+</div>
+<!-- Login Form -->
+<form class="w-full space-y-lg">
+<!-- Email/Username Input -->
+<div class="space-y-base">
+<label class="font-label-md text-label-md text-on-surface-variant block ml-base">Email atau Username</label>
+<div class="relative flex items-center bg-surface-container-lowest border border-outline-variant rounded-lg px-md py-sm focused-input transition-all">
+<span class="material-symbols-outlined text-outline mr-md" data-icon="person">person</span>
+<input class="bg-transparent border-none p-0 w-full font-body-md text-body-md focus:ring-0 placeholder:text-outline" placeholder="Masukkan email/username" type="text"/>
+</div>
+</div>
+<!-- Password Input -->
+<div class="space-y-base">
+<label class="font-label-md text-label-md text-on-surface-variant block ml-base">Kata Sandi</label>
+<div class="relative flex items-center bg-surface-container-lowest border border-outline-variant rounded-lg px-md py-sm focused-input transition-all">
+<span class="material-symbols-outlined text-outline mr-md" data-icon="lock">lock</span>
+<input class="bg-transparent border-none p-0 w-full font-body-md text-body-md focus:ring-0 placeholder:text-outline" id="password-field" placeholder="••••••••" type="password"/>
+<button class="text-outline hover:text-secondary p-xs" onclick="togglePassword()" type="button">
+<span class="material-symbols-outlined" data-icon="visibility" id="password-toggle-icon">visibility</span>
+</button>
+</div>
+</div>
+<!-- Forgot Password -->
+<div class="flex justify-end">
+<a class="font-label-md text-label-md text-secondary hover:underline" href="#">Lupa Kata Sandi?</a>
+</div>
+<!-- Login Button -->
+<button class="w-full h-12 bg-secondary text-on-secondary rounded-lg font-label-md text-label-md shadow-sm active:scale-95 transition-transform flex items-center justify-center gap-sm" type="submit">
+                Masuk Ke Sistem
+            </button>
+<!-- Biometric Option -->
+<div class="pt-lg flex flex-col items-center gap-md">
+<div class="flex items-center w-full gap-md">
+<div class="h-px bg-outline-variant flex-grow"></div>
+<span class="font-label-sm text-label-sm text-outline uppercase tracking-wider">Atau gunakan</span>
+<div class="h-px bg-outline-variant flex-grow"></div>
+</div>
+<button class="flex items-center gap-md px-lg py-sm rounded-full border border-outline-variant hover:bg-surface-container-low transition-colors group" onclick="mockBiometric()" type="button">
+<span class="material-symbols-outlined text-secondary group-hover:scale-110 transition-transform" data-icon="fingerprint">fingerprint</span>
+<span class="font-label-md text-label-md text-on-surface">Masuk dengan Biometrik</span>
+</button>
+</div>
+</form>
+<!-- Illustration / Background Context (Subtle) -->
+<div class="mt-xl opacity-20 w-full h-24 flex items-center justify-center overflow-hidden grayscale">
+<div class="grid grid-cols-4 gap-sm">
+<div class="w-12 h-12 bg-outline-variant rounded-lg"></div>
+<div class="w-12 h-12 bg-secondary-container rounded-lg"></div>
+<div class="w-12 h-12 bg-outline-variant rounded-lg"></div>
+<div class="w-12 h-12 bg-outline-variant rounded-lg"></div>
+</div>
+</div>
+</main>
+<!-- Footer (Shared Component Logic) -->
+<footer class="w-full bottom-0 bg-surface border-t border-outline-variant flex flex-col items-center py-xl px-margin w-full gap-sm">
+<div class="flex gap-lg mb-sm">
+<a class="font-label-sm text-label-sm text-on-surface-variant hover:text-primary transition-colors underline" href="#">Privacy Policy</a>
+<a class="font-label-sm text-label-sm text-on-surface-variant hover:text-primary transition-colors underline" href="#">Terms of Service</a>
+<a class="font-label-sm text-label-sm text-on-surface-variant hover:text-primary transition-colors underline" href="#">Support</a>
+</div>
+<p class="font-label-sm text-label-sm text-secondary">© 2024 TicketScan Pro. Secure Logistics Environment.</p>
+</footer>
+<script>
+        function togglePassword() {
+            const passwordField = document.getElementById('password-field');
+            const icon = document.getElementById('password-toggle-icon');
+            if (passwordField.type === 'password') {
+                passwordField.type = 'text';
+                icon.textContent = 'visibility_off';
+            } else {
+                passwordField.type = 'password';
+                icon.textContent = 'visibility';
+            }
+        }
+
+        function mockBiometric() {
+            // Visual feedback for biometric interaction
+            const btn = event.currentTarget;
+            btn.classList.add('opacity-50', 'pointer-events-none');
+            const originalHtml = btn.innerHTML;
+            btn.innerHTML = `<span class="material-symbols-outlined animate-spin" data-icon="sync">sync</span> <span class="font-label-md text-label-md">Authenticating...</span>`;
+            
+            setTimeout(() => {
+                alert("Simulasi: Autentikasi biometrik berhasil.");
+                btn.innerHTML = originalHtml;
+                btn.classList.remove('opacity-50', 'pointer-events-none');
+            }, 1500);
+        }
+    </script>
+</body></html>

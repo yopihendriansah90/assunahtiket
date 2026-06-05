@@ -739,6 +739,7 @@
         .scan-modal.is-visible {
             opacity: 1;
             visibility: visible;
+            pointer-events: auto;
         }
         .scan-modal-card {
             width: min(100%, 420px);

@@ -7,7 +7,7 @@
                 <h1 class="gate-desktop-sidebar-title">Gate Manager</h1>
                 <div class="gate-desktop-gate-card">
                     <div class="gate-desktop-gate-icon" aria-hidden="true">
-                        <x-carbon-ibm-engineering-requirements-doors-next class="gate-desktop-gate-icon-svg" />
+                        @svg('carbon-ibm-engineering-requirements-doors-next', 'gate-desktop-gate-icon-svg')
                     </div>
                     <div>
                         <div class="gate-desktop-gate-name">{{ $selectedGateId > 0 ? ($gates->firstWhere('id', $selectedGateId)?->name ?? 'Gate Aktif') : 'Semua Gate' }}</div>
@@ -45,9 +45,9 @@
         <div class="gate-desktop-content">
             <header class="gate-mobile-topbar gate-history-topbar">
                 <div class="gate-mobile-title-wrap gate-desktop-title-wrap">
-                    <div class="gate-mobile-logo" aria-hidden="true">
-                        <x-carbon-ibm-engineering-requirements-doors-next class="gate-desktop-gate-icon-svg" />
-                    </div>
+                <div class="gate-mobile-logo" aria-hidden="true">
+                    @svg('carbon-ibm-engineering-requirements-doors-next', 'gate-desktop-gate-icon-svg')
+                </div>
                     <div>
                         <h1 class="gate-mobile-title">Riwayat Pemindaian</h1>
                         <p class="gate-mobile-subtitle">Lihat riwayat scan dari gate yang bisa Anda akses.</p>

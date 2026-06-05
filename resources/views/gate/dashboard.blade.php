@@ -52,7 +52,7 @@
                 <h1 class="gate-desktop-sidebar-title">Gate Manager</h1>
                 <div class="gate-desktop-gate-card">
                     <div class="gate-desktop-gate-icon" aria-hidden="true">
-                        <x-carbon-ibm-engineering-requirements-doors-next class="gate-desktop-gate-icon-svg" />
+                        @svg('carbon-ibm-engineering-requirements-doors-next', 'gate-desktop-gate-icon-svg')
                     </div>
                     <div>
                         <div class="gate-desktop-gate-name">{{ $activeGate?->name ?? 'Gate Aktif' }}</div>
@@ -90,7 +90,7 @@
         <header class="gate-mobile-topbar">
             <div class="gate-mobile-title-wrap gate-desktop-title-wrap">
                 <div class="gate-mobile-logo" aria-hidden="true">
-                    <x-carbon-ibm-engineering-requirements-doors-next class="gate-desktop-gate-icon-svg" />
+                    @svg('carbon-ibm-engineering-requirements-doors-next', 'gate-desktop-gate-icon-svg')
                 </div>
                 <div>
                     <h1 class="gate-mobile-title">{{ $activeGate?->name ?? 'Dashboard Gate' }}</h1>

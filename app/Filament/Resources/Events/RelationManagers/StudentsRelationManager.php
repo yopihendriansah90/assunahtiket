@@ -194,7 +194,8 @@ class StudentsRelationManager extends RelationManager
                     }),
                 TextInput::make('mother_whatsapp')
                     ->label('Nomor WhatsApp Ibu Kandung')
-                    ->tel()
+                    ->type('tel')
+                    ->inputMode('numeric')
                     ->required()
                     ->maxLength(20)
                     ->placeholder('081234567890')
@@ -202,7 +203,15 @@ class StudentsRelationManager extends RelationManager
                     ->dehydrateStateUsing(fn (?string $state): ?string => Student::normalizeWhatsapp($state))
                     ->rule(function (): callable {
                         return function (string $attribute, mixed $value, \Closure $fail): void {
-                            if (! Student::isValidWhatsapp(is_string($value) ? $value : null)) {
+                            $input = trim((string) $value);
+
+                            if ($input !== '' && preg_match('/[^0-9]/', $input) === 1) {
+                                $fail('Nomor WhatsApp ibu kandung hanya boleh berisi angka.');
+
+                                return;
+                            }
+
+                            if (! Student::isValidWhatsapp($input !== '' ? $input : null)) {
                                 $fail('Nomor WhatsApp ibu kandung harus diawali 08 atau 628 dan hanya berisi angka yang valid.');
                             }
                         };

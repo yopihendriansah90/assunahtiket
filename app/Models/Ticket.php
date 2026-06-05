@@ -98,7 +98,7 @@ class Ticket extends Model
 
         return collect($segments)
             ->filter()
-            ->implode('_') . '.jpg';
+            ->implode('_') . '.png';
     }
 
     protected function qrSequenceNumber(): string

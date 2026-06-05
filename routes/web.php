@@ -6,7 +6,7 @@ use Illuminate\Support\Facades\Route;
 
 Route::redirect('/', '/gate');
 
-Route::get('/students/{student}/ticket-qr.jpg', StudentTicketQrDownloadController::class)
+Route::get('/students/{student}/ticket-qr.png', StudentTicketQrDownloadController::class)
     ->name('students.ticket-qr.download');
 
 Route::prefix('gate')->name('gate.')->group(function (): void {

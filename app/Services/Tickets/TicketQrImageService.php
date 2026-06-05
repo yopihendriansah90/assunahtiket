@@ -20,9 +20,11 @@ class TicketQrImageService
     private string $disk = 'public';
     private const TICKET_SEQUENCE_PADDING = 5;
 
-    private const QR_LABEL_HEADER_HEIGHT = 72;
+    private const QR_LABEL_HEADER_HEIGHT = 44;
 
-    private const QR_LABEL_FONT = '/usr/share/fonts/truetype/msttcorefonts/Arial.ttf';
+    private const QR_IMAGE_TOP_TRIM = 24;
+
+    private const QR_LABEL_BUNDLED_FONT = 'resources/fonts/Roboto-Regular.ttf';
 
     public function ensureTicketForStudent(Student $student, ?User $generatedBy = null): Ticket
     {
@@ -63,11 +65,10 @@ class TicketQrImageService
         Storage::disk($this->disk)->makeDirectory($directory);
 
         $options = new QROptions([
-            'outputType' => QROutputInterface::GDIMAGE_JPG,
+            'outputType' => QROutputInterface::GDIMAGE_PNG,
             'outputBase64' => false,
             'returnResource' => false,
-            'scale' => 12,
-            'quality' => 92,
+            'scale' => 14,
             'imageTransparent' => false,
         ]);
 
@@ -75,7 +76,7 @@ class TicketQrImageService
             (new QRCode($options))->render($this->qrPayload($ticket), $absolutePath);
             $this->addTicketCodeLabelToQrImage($absolutePath, $ticket->ticket_code);
         } catch (\Throwable $throwable) {
-            throw new RuntimeException('QR JPG gagal dibuat: ' . $throwable->getMessage(), previous: $throwable);
+            throw new RuntimeException('QR PNG gagal dibuat: ' . $throwable->getMessage(), previous: $throwable);
         }
 
         $size = Storage::disk($this->disk)->exists($relativePath)
@@ -90,7 +91,7 @@ class TicketQrImageService
             [
                 'disk' => $this->disk,
                 'path' => $relativePath,
-                'mime_type' => 'image/jpeg',
+                'mime_type' => 'image/png',
                 'size' => $size,
                 'created_by' => $generatedBy?->getKey(),
             ],
@@ -187,24 +188,26 @@ class TicketQrImageService
 
     protected function addTicketCodeLabelToQrImage(string $absolutePath, ?string $ticketCode): void
     {
-        if (! function_exists('imagecreatefromjpeg') || ! function_exists('imagecreatetruecolor') || ! function_exists('imagestring')) {
+        if (! function_exists('imagecreatefrompng') || ! function_exists('imagecreatetruecolor') || ! function_exists('imagestring')) {
             throw new RuntimeException('Ekstensi GD tidak tersedia untuk menambahkan label QR.');
         }
 
-        $sourceImage = imagecreatefromjpeg($absolutePath);
+        $sourceImage = imagecreatefrompng($absolutePath);
 
         if (! $sourceImage) {
-            throw new RuntimeException('Gagal membuka file QR JPG untuk menambahkan label.');
+            throw new RuntimeException('Gagal membuka file QR PNG untuk menambahkan label.');
         }
 
         $sourceWidth = imagesx($sourceImage);
         $sourceHeight = imagesy($sourceImage);
         $headerHeight = self::QR_LABEL_HEADER_HEIGHT;
+        $topTrim = min(self::QR_IMAGE_TOP_TRIM, max(0, $sourceHeight - 1));
+        $trimmedSourceHeight = $sourceHeight - $topTrim;
 
-        $targetImage = imagecreatetruecolor($sourceWidth, $sourceHeight + $headerHeight);
+        $targetImage = imagecreatetruecolor($sourceWidth, $trimmedSourceHeight + $headerHeight);
 
         if (! $targetImage) {
-            imagedestroy($sourceImage);
+            $this->destroyImage($sourceImage);
 
             throw new RuntimeException('Gagal membuat canvas QR baru.');
         }
@@ -213,31 +216,87 @@ class TicketQrImageService
         $black = imagecolorallocate($targetImage, 18, 24, 38);
 
         imagefill($targetImage, 0, 0, $white);
-        imagecopy($targetImage, $sourceImage, 0, $headerHeight, 0, 0, $sourceWidth, $sourceHeight);
+        imagecopy($targetImage, $sourceImage, 0, $headerHeight, 0, $topTrim, $sourceWidth, $trimmedSourceHeight);
 
         $label = trim((string) $ticketCode);
-        $fontFile = is_file(self::QR_LABEL_FONT) ? self::QR_LABEL_FONT : null;
+        $fontFile = $this->resolveLabelFontFile();
 
         if ($fontFile && function_exists('imagettfbbox') && function_exists('imagettftext')) {
             $fontSize = 18;
-            $bbox = imagettfbbox($fontSize, 0, $fontFile, $label !== '' ? $label : '-');
-            $textWidth = abs($bbox[4] - $bbox[0]);
-            $textHeight = abs($bbox[5] - $bbox[1]);
-            $labelX = (int) max(12, floor(($sourceWidth - $textWidth) / 2));
-            $baselineY = (int) (($headerHeight - $textHeight) / 2) + $textHeight;
+            $rendered = $this->renderTrueTypeLabel(
+                targetImage: $targetImage,
+                sourceWidth: $sourceWidth,
+                headerHeight: $headerHeight,
+                label: $label !== '' ? $label : '-',
+                fontFile: $fontFile,
+                fontSize: $fontSize,
+                color: $black,
+            );
 
-            imagettftext($targetImage, $fontSize, 0, $labelX, $baselineY, $black, $fontFile, $label !== '' ? $label : '-');
-        } else {
-            $labelWidth = strlen($label) * imagefontwidth(5);
-            $labelX = max(12, (int) floor(($sourceWidth - $labelWidth) / 2));
-            $labelY = 24;
+            if ($rendered) {
+                imagepng($targetImage, $absolutePath);
 
-            imagestring($targetImage, 5, $labelX, $labelY, $label !== '' ? $label : '-', $black);
+                $this->destroyImage($sourceImage);
+                $this->destroyImage($targetImage);
+
+                return;
+            }
         }
 
-        imagejpeg($targetImage, $absolutePath, 92);
+        $labelWidth = strlen($label) * imagefontwidth(5);
+        $labelX = max(12, (int) floor(($sourceWidth - $labelWidth) / 2));
+        $labelY = 14;
 
-        imagedestroy($sourceImage);
-        imagedestroy($targetImage);
+        imagestring($targetImage, 5, $labelX, $labelY, $label !== '' ? $label : '-', $black);
+
+        imagepng($targetImage, $absolutePath);
+
+        $this->destroyImage($sourceImage);
+        $this->destroyImage($targetImage);
+    }
+
+    protected function resolveLabelFontFile(): ?string
+    {
+        $bundledFontPath = base_path(self::QR_LABEL_BUNDLED_FONT);
+
+        if (is_file($bundledFontPath)) {
+            return $bundledFontPath;
+        }
+
+        return null;
+    }
+
+    protected function renderTrueTypeLabel(
+        \GdImage $targetImage,
+        int $sourceWidth,
+        int $headerHeight,
+        string $label,
+        string $fontFile,
+        int $fontSize,
+        int $color,
+    ): bool {
+        $bbox = @imagettfbbox($fontSize, 0, $fontFile, $label);
+
+        if (! is_array($bbox)) {
+            return false;
+        }
+
+        $textWidth = abs($bbox[4] - $bbox[0]);
+        $textHeight = abs($bbox[5] - $bbox[1]);
+        $labelX = (int) max(12, floor(($sourceWidth - $textWidth) / 2));
+        $baselineY = (int) (($headerHeight - $textHeight) / 2) + $textHeight - 2;
+
+        return @imagettftext($targetImage, $fontSize, 0, $labelX, $baselineY, $color, $fontFile, $label) !== false;
+    }
+
+    protected function destroyImage(?\GdImage $image): void
+    {
+        if (! $image instanceof \GdImage) {
+            return;
+        }
+
+        if (PHP_VERSION_ID < 80500) {
+            imagedestroy($image);
+        }
     }
 }

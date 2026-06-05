@@ -51,9 +51,7 @@ class TicketQrZipExportService
                 $ticket = $this->ticketQrImageService->ensureTicketForStudent($student, $requestedBy);
             }
 
-            if ($this->ticketQrImageService->hasStoredQrImage($ticket) === false) {
-                $this->ticketQrImageService->ensureQrImageForTicket($ticket, $requestedBy);
-            }
+            $this->ticketQrImageService->ensureQrImageForTicket($ticket, $requestedBy);
 
             $absolutePath = Storage::disk('public')->path($ticket->qrFilePath());
 

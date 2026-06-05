@@ -379,6 +379,7 @@
                 let feedbackModalTimer = null;
                 let feedbackModalCountdownTimer = null;
                 let scanCooldownUntil = 0;
+                let preferredFacingMode = 'environment';
 
                 if (! input || ! form) {
                     return;
@@ -460,18 +461,38 @@
                     return /android|iphone|ipad|ipod/i.test(window.navigator.userAgent || '');
                 };
 
+                const normalizeCameraLabel = (device) => {
+                    return String(device?.label || '').trim().toLowerCase();
+                };
+
+                const isRearCameraLabel = (label) => {
+                    return label.includes('back')
+                        || label.includes('rear')
+                        || label.includes('environment')
+                        || label.includes('belakang')
+                        || label.includes('world')
+                        || label.includes('traseira')
+                        || label.includes('trasera');
+                };
+
+                const isFrontCameraLabel = (label) => {
+                    return label.includes('front')
+                        || label.includes('user')
+                        || label.includes('depan')
+                        || label.includes('facetime')
+                        || label.includes('selfie')
+                        || label.includes('frontal');
+                };
+
                 const getPreferredCameraIndex = (devices) => {
                     if (! Array.isArray(devices) || devices.length === 0) {
                         return 0;
                     }
 
                     const rearCameraIndex = devices.findIndex((device) => {
-                        const label = String(device?.label || '').toLowerCase();
+                        const label = normalizeCameraLabel(device);
 
-                        return label.includes('back')
-                            || label.includes('rear')
-                            || label.includes('environment')
-                            || label.includes('belakang');
+                        return isRearCameraLabel(label);
                     });
 
                     if (rearCameraIndex !== -1) {
@@ -479,6 +500,123 @@
                     }
 
                     return isMobileDevice() ? Math.min(1, devices.length - 1) : 0;
+                };
+
+                const sortCameraDevices = (devices) => {
+                    if (! Array.isArray(devices)) {
+                        return [];
+                    }
+
+                    return [...devices].sort((left, right) => {
+                        const leftLabel = normalizeCameraLabel(left);
+                        const rightLabel = normalizeCameraLabel(right);
+                        const leftRank = isRearCameraLabel(leftLabel)
+                            ? 0
+                            : (isFrontCameraLabel(leftLabel) ? 2 : 1);
+                        const rightRank = isRearCameraLabel(rightLabel)
+                            ? 0
+                            : (isFrontCameraLabel(rightLabel) ? 2 : 1);
+
+                        if (leftRank !== rightRank) {
+                            return leftRank - rightRank;
+                        }
+
+                        return leftLabel.localeCompare(rightLabel);
+                    });
+                };
+
+                const releaseStream = (stream) => {
+                    stream?.getTracks?.().forEach((track) => track.stop());
+                };
+
+                const ensureCameraPermission = async () => {
+                    if (! navigator.mediaDevices?.getUserMedia) {
+                        return false;
+                    }
+
+                    let stream = null;
+
+                    try {
+                        stream = await navigator.mediaDevices.getUserMedia({
+                            video: isMobileDevice()
+                                ? { facingMode: { ideal: preferredFacingMode } }
+                                : true,
+                            audio: false,
+                        });
+
+                        return true;
+                    } catch (error) {
+                        return false;
+                    } finally {
+                        releaseStream(stream);
+                    }
+                };
+
+                const resolveCameraDevices = async (scannerLib) => {
+                    const fromLibrary = async () => {
+                        if (! scannerLib?.Html5Qrcode?.getCameras) {
+                            return [];
+                        }
+
+                        try {
+                            const devices = await scannerLib.Html5Qrcode.getCameras();
+
+                            return sortCameraDevices(devices);
+                        } catch (error) {
+                            return [];
+                        }
+                    };
+
+                    let devices = await fromLibrary();
+
+                    if (devices.length > 0) {
+                        return devices;
+                    }
+
+                    await ensureCameraPermission();
+                    devices = await fromLibrary();
+
+                    if (devices.length > 0) {
+                        return devices;
+                    }
+
+                    try {
+                        const mediaDevices = await navigator.mediaDevices.enumerateDevices();
+
+                        return sortCameraDevices(
+                            mediaDevices
+                                .filter((device) => device.kind === 'videoinput')
+                                .map((device, index) => ({
+                                    id: device.deviceId,
+                                    label: device.label || `Camera ${index + 1}`,
+                                })),
+                        );
+                    } catch (error) {
+                        return [];
+                    }
+                };
+
+                const buildStartConfigs = (selectedDevice) => {
+                    if (selectedDevice?.id) {
+                        return [selectedDevice.id];
+                    }
+
+                    if (isMobileDevice()) {
+                        const preferred = preferredFacingMode === 'user' ? 'user' : 'environment';
+                        const secondary = preferred === 'environment' ? 'user' : 'environment';
+
+                        return [
+                            { facingMode: { exact: preferred } },
+                            { facingMode: { ideal: preferred } },
+                            { facingMode: preferred },
+                            { facingMode: { exact: secondary } },
+                            { facingMode: { ideal: secondary } },
+                            { facingMode: secondary },
+                            {},
+                        ];
+                    }
+
+                    return [{}, { facingMode: { ideal: 'environment' } }];
                 };
 
                 const getQrboxConfig = () => {
@@ -539,9 +677,9 @@
                     }
 
                     try {
-                        cameraDevices = await scannerLib.Html5Qrcode.getCameras();
+                        cameraDevices = await resolveCameraDevices(scannerLib);
 
-                        cameraSwitchButton?.toggleAttribute('disabled', cameraDevices.length <= 1);
+                        cameraSwitchButton?.toggleAttribute('disabled', cameraDevices.length <= 1 && ! isMobileDevice());
                         if (activeCameraIndex >= cameraDevices.length) {
                             activeCameraIndex = 0;
                         }
@@ -550,34 +688,45 @@
                             activeCameraIndex = getPreferredCameraIndex(cameraDevices);
                         }
 
-                        const selectedDevice = cameraDevices[activeCameraIndex] ?? cameraDevices[0] ?? null;
-
                         await stopCameraStream();
                         setCameraStatus('warning', 'Menyalakan Kamera', 'Meminta izin akses webcam untuk scanner QR.');
+                        const selectedDevice = cameraDevices[activeCameraIndex] ?? cameraDevices[0] ?? null;
+                        const startConfigs = buildStartConfigs(selectedDevice);
+                        let lastError = null;
+                        let started = false;
 
-                        if (! selectedDevice) {
-                            throw new Error('Tidak ada kamera yang tersedia.');
+                        for (const cameraConfig of startConfigs) {
+                            try {
+                                await html5QrCode.start(
+                                    cameraConfig,
+                                    {
+                                        fps: isMobileDevice() ? 12 : 10,
+                                        qrbox: getQrboxConfig(),
+                                        aspectRatio: isMobileDevice() ? 1 : 4 / 3,
+                                        disableFlip: false,
+                                    },
+                                    (decodedText) => {
+                                        if (isScanBlocked() || input.value.trim() !== '') {
+                                            return;
+                                        }
+
+                                        input.value = decodedText.trim();
+                                        submitScan();
+                                    },
+                                    () => {
+                                    },
+                                );
+
+                                started = true;
+                                break;
+                            } catch (error) {
+                                lastError = error;
+                            }
                         }
 
-                        await html5QrCode.start(
-                            selectedDevice.id ?? { facingMode: 'environment' },
-                            {
-                                fps: isMobileDevice() ? 12 : 10,
-                                qrbox: getQrboxConfig(),
-                                aspectRatio: isMobileDevice() ? 1 : 4 / 3,
-                                disableFlip: false,
-                            },
-                            (decodedText) => {
-                                if (isScanBlocked() || input.value.trim() !== '') {
-                                    return;
-                                }
-
-                                input.value = decodedText.trim();
-                                submitScan();
-                            },
-                            () => {
-                            },
-                        );
+                        if (! started) {
+                            throw lastError || new Error('Tidak ada kamera yang tersedia.');
+                        }
 
                         showCameraPreview(true);
                         setCameraPlaceholder('Kamera aktif', 'Arahkan QR code ke area kamera untuk scan otomatis.', 'Kamera Aktif');
@@ -587,7 +736,7 @@
                             selectedDevice?.label
                                 ? `Kamera aktif: ${selectedDevice.label}`
                                 : (isMobileDevice()
-                                    ? 'Kamera belakang diutamakan dan siap untuk scan QR.'
+                                    ? `Kamera ${preferredFacingMode === 'user' ? 'depan' : 'belakang'} aktif dan siap untuk scan QR.`
                                     : 'Kamera aktif dan siap untuk scan QR.'),
                         );
                         cameraToggleButton?.removeAttribute('disabled');
@@ -619,11 +768,14 @@
                 };
 
                 const switchCamera = async () => {
-                    if (cameraDevices.length <= 1) {
+                    if (cameraDevices.length > 1) {
+                        activeCameraIndex = (activeCameraIndex + 1) % cameraDevices.length;
+                    } else if (isMobileDevice()) {
+                        preferredFacingMode = preferredFacingMode === 'environment' ? 'user' : 'environment';
+                    } else {
                         return;
                     }
 
-                    activeCameraIndex = (activeCameraIndex + 1) % cameraDevices.length;
                     cameraEnabled = true;
                     await startCameraStream();
                 };

@@ -378,11 +378,15 @@ class GateAuthController extends Controller
             'message' => $scanResult['message'] ?? '',
             'gate_name' => $scanResult['gate_name'] ?? null,
             'gate_code' => $scanResult['gate_code'] ?? null,
+            'query' => $scanResult['query'] ?? null,
             'ticket' => $ticket ? [
                 'name' => $ticket->student?->name ?? '-',
                 'class' => $ticket->student?->eventClass?->name ?? '-',
+                'mother_name' => $ticket->student?->mother_name ?? '-',
+                'mother_whatsapp' => $ticket->student?->mother_whatsapp ?? '-',
                 'ticket_code' => $ticket->ticket_code,
                 'qr_token' => $ticket->qr_token,
+                'event_name' => $ticket->event?->name ?? '-',
             ] : null,
             'checkin' => $checkin ? [
                 'checked_in_at' => $checkin->checked_in_at?->format('d/m/Y H:i:s'),

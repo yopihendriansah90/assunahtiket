@@ -685,19 +685,68 @@
             line-height: 1.05;
         }
         .scan-modal-body {
-            padding: 20px 24px 24px;
-            text-align: center;
+            padding: 18px 18px 20px;
         }
         .scan-modal-message {
             margin: 0;
-            font-size: 16px;
+            font-size: 15px;
             line-height: 1.55;
             color: #334155;
+            text-align: center;
+        }
+        .scan-modal-details {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 10px;
+            margin-top: 16px;
+        }
+        .scan-modal-detail {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            padding: 12px 14px;
+            border: 1px solid #e2e8f0;
+            border-radius: 16px;
+            background: #f8fafc;
+            text-align: left;
+        }
+        .scan-modal-detail-label {
+            font-size: 11px;
+            font-weight: 800;
+            letter-spacing: 0.04em;
+            text-transform: uppercase;
+            color: #64748b;
+        }
+        .scan-modal-detail-value {
+            font-size: 14px;
+            font-weight: 700;
+            line-height: 1.45;
+            color: #0f172a;
+            word-break: break-word;
+        }
+        .scan-modal-detail-value:empty::before {
+            content: "-";
         }
         .scan-modal-meta {
             margin-top: 14px;
             font-size: 13px;
             color: var(--muted);
+            text-align: center;
+        }
+        @media (min-width: 640px) {
+            .scan-modal-card {
+                width: min(100%, 560px);
+            }
+            .scan-modal-body {
+                padding: 20px 24px 24px;
+            }
+            .scan-modal-details {
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+                gap: 12px;
+            }
+            .scan-modal-detail.scan-modal-detail-wide {
+                grid-column: span 2;
+            }
         }
         .form-hint {
             color: var(--muted);

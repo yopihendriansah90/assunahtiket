@@ -23,12 +23,16 @@
                     'message' => data_get($scanResult, 'message'),
                     'gate_name' => data_get($scanResult, 'gate_name', $activeGate?->name),
                     'gate_code' => data_get($scanResult, 'gate_code'),
+                    'query' => data_get($scanResult, 'query'),
                     'ticket' => $scanTicket
                         ? [
                             'name' => $scanTicket?->student?->name ?? '-',
                             'class' => $scanTicket?->student?->eventClass?->name ?? '-',
+                            'mother_name' => $scanTicket?->student?->mother_name ?? '-',
+                            'mother_whatsapp' => $scanTicket?->student?->mother_whatsapp ?? '-',
                             'ticket_code' => $scanTicket?->ticket_code,
                             'qr_token' => $scanTicket?->qr_token,
+                            'event_name' => $scanTicket?->event?->name ?? '-',
                         ]
                         : null,
                     'checkin' => $scanCheckin
@@ -378,6 +382,40 @@
                 <p id="scan-feedback-message" class="scan-modal-message">
                     Tiket valid dan check-in berhasil diproses.
                 </p>
+                <div class="scan-modal-details">
+                    <div class="scan-modal-detail">
+                        <span class="scan-modal-detail-label">Nama Peserta</span>
+                        <span id="scan-feedback-student-name" class="scan-modal-detail-value">-</span>
+                    </div>
+                    <div class="scan-modal-detail">
+                        <span class="scan-modal-detail-label">Kelas</span>
+                        <span id="scan-feedback-student-class" class="scan-modal-detail-value">-</span>
+                    </div>
+                    <div class="scan-modal-detail">
+                        <span class="scan-modal-detail-label">Nama Ibu</span>
+                        <span id="scan-feedback-mother-name" class="scan-modal-detail-value">-</span>
+                    </div>
+                    <div class="scan-modal-detail">
+                        <span class="scan-modal-detail-label">WhatsApp Ibu</span>
+                        <span id="scan-feedback-mother-whatsapp" class="scan-modal-detail-value">-</span>
+                    </div>
+                    <div class="scan-modal-detail">
+                        <span class="scan-modal-detail-label">Kode Tiket</span>
+                        <span id="scan-feedback-ticket-code" class="scan-modal-detail-value">-</span>
+                    </div>
+                    <div class="scan-modal-detail">
+                        <span class="scan-modal-detail-label">Waktu Scan</span>
+                        <span id="scan-feedback-checked-in-at" class="scan-modal-detail-value">-</span>
+                    </div>
+                    <div class="scan-modal-detail scan-modal-detail-wide">
+                        <span class="scan-modal-detail-label">Acara</span>
+                        <span id="scan-feedback-event-name" class="scan-modal-detail-value">-</span>
+                    </div>
+                    <div class="scan-modal-detail scan-modal-detail-wide">
+                        <span class="scan-modal-detail-label">Input Scan</span>
+                        <span id="scan-feedback-query" class="scan-modal-detail-value">-</span>
+                    </div>
+                </div>
                 <div id="scan-feedback-meta" class="scan-modal-meta">
                     Notifikasi ini akan tertutup otomatis dalam 5 detik.
                 </div>
@@ -404,6 +442,14 @@
                 const scanFeedbackTitle = document.getElementById('scan-feedback-title');
                 const scanFeedbackMessage = document.getElementById('scan-feedback-message');
                 const scanFeedbackMeta = document.getElementById('scan-feedback-meta');
+                const scanFeedbackStudentName = document.getElementById('scan-feedback-student-name');
+                const scanFeedbackStudentClass = document.getElementById('scan-feedback-student-class');
+                const scanFeedbackMotherName = document.getElementById('scan-feedback-mother-name');
+                const scanFeedbackMotherWhatsapp = document.getElementById('scan-feedback-mother-whatsapp');
+                const scanFeedbackTicketCode = document.getElementById('scan-feedback-ticket-code');
+                const scanFeedbackCheckedInAt = document.getElementById('scan-feedback-checked-in-at');
+                const scanFeedbackEventName = document.getElementById('scan-feedback-event-name');
+                const scanFeedbackQuery = document.getElementById('scan-feedback-query');
                 const enterButton = document.getElementById('gate-scan-mode-enter');
                 const autoButton = document.getElementById('gate-scan-mode-auto');
                 const cameraReader = document.getElementById('camera-reader');
@@ -666,6 +712,12 @@
                     });
                 };
 
+                const setFeedbackDetail = (node, value) => {
+                    if (node) {
+                        node.textContent = value && String(value).trim() !== '' ? value : '-';
+                    }
+                };
+
                 const hideFeedbackModal = () => {
                     if (! scanFeedbackModal) {
                         return;
@@ -677,7 +729,7 @@
                     scanFeedbackModal.setAttribute('aria-hidden', 'true');
                 };
 
-                const showFeedbackModal = (status, message) => {
+                const showFeedbackModal = (status, message, result = {}) => {
                     if (! scanFeedbackModal || ! scanFeedbackHead || ! scanFeedbackIcon || ! scanFeedbackTitle || ! scanFeedbackMessage) {
                         return;
                     }
@@ -710,6 +762,14 @@
                     scanFeedbackIcon.textContent = variant.icon;
                     scanFeedbackTitle.textContent = variant.title;
                     scanFeedbackMessage.textContent = message || variant.meta;
+                    setFeedbackDetail(scanFeedbackStudentName, result?.ticket?.name);
+                    setFeedbackDetail(scanFeedbackStudentClass, result?.ticket?.class);
+                    setFeedbackDetail(scanFeedbackMotherName, result?.ticket?.mother_name);
+                    setFeedbackDetail(scanFeedbackMotherWhatsapp, result?.ticket?.mother_whatsapp);
+                    setFeedbackDetail(scanFeedbackTicketCode, result?.ticket?.ticket_code);
+                    setFeedbackDetail(scanFeedbackCheckedInAt, result?.checkin?.checked_in_at);
+                    setFeedbackDetail(scanFeedbackEventName, result?.ticket?.event_name);
+                    setFeedbackDetail(scanFeedbackQuery, result?.query);
 
                     let countdown = 5;
 
@@ -820,7 +880,7 @@
                     }
 
                     scanCooldownUntil = Date.now() + 5000;
-                    showFeedbackModal(status, result.message || null);
+                    showFeedbackModal(status, result.message || null, result);
                     input.value = '';
                     input.focus();
                     input.select();

@@ -14,7 +14,7 @@ class ListCheckins extends ListRecords
     {
         return [
             CreateAction::make()
-                ->label('Tambah Kehadiran')
+                ->label('Tambah Log Scan')
                 ->visible(fn (): bool => auth()->user()?->hasRole('super_admin') ?? false),
         ];
     }

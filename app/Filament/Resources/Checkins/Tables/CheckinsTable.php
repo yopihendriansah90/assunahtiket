@@ -2,9 +2,6 @@
 
 namespace App\Filament\Resources\Checkins\Tables;
 
-use App\Services\Checkins\CheckinExcelExportService;
-use Filament\Actions\BulkActionGroup;
-use Filament\Actions\BulkAction;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\DeleteAction;
 use Filament\Actions\EditAction;
@@ -22,6 +19,7 @@ class CheckinsTable
         $isSuperAdmin = $user?->hasRole('super_admin') ?? false;
 
         return $table
+            ->poll('5s')
             ->modifyQueryUsing(function (Builder $query) use ($user): Builder {
                 if (! $user || $user->can('ViewAny:Checkin') === false) {
                     return $query->whereRaw('1 = 0');
@@ -32,30 +30,49 @@ class CheckinsTable
                         'event',
                         'gate',
                         'user',
-                        'ticket.student.eventClass',
+                        'ticket.student',
                     ]);
             })
-            ->defaultSort('checked_in_at', 'desc')
+            ->defaultSort('scanned_at', 'desc')
             ->columns([
                 TextColumn::make('id')
                     ->label('No.')
                     ->rowIndex()
                     ->sortable(),
+                TextColumn::make('scanned_at')
+                    ->label('Waktu Scan')
+                    ->dateTime()
+                    ->sortable(),
                 TextColumn::make('event.name')
                     ->label('Acara')
                     ->searchable()
                     ->sortable(),
-                TextColumn::make('ticket.student.name')
+                TextColumn::make('student_name')
                     ->label('Nama Siswa')
                     ->searchable()
                     ->sortable(),
-                TextColumn::make('ticket.student.eventClass.name')
+                TextColumn::make('class_name')
                     ->label('Kelas')
                     ->toggleable()
                     ->searchable(),
-                TextColumn::make('ticket.ticket_code')
+                TextColumn::make('ticket_code')
                     ->label('Kode Tiket')
                     ->searchable()
+                    ->sortable(),
+                TextColumn::make('query')
+                    ->label('Input Scan')
+                    ->toggleable()
+                    ->searchable(),
+                TextColumn::make('status')
+                    ->label('Status')
+                    ->badge()
+                    ->color(fn (?string $state): string => match ($state) {
+                        'success' => 'success',
+                        'already_scanned' => 'warning',
+                        'missing' => 'danger',
+                        default => 'gray',
+                    })
+                    ->formatStateUsing(fn (?string $state): string => self::formatScanStatus($state))
                     ->sortable(),
                 TextColumn::make('gate.name')
                     ->label('Pintu Masuk')
@@ -67,11 +84,7 @@ class CheckinsTable
                 TextColumn::make('scan_method')
                     ->label('Metode')
                     ->badge()
-                    ->formatStateUsing(fn (?string $state): string => $state ? strtoupper($state) : '-')
-                    ->sortable(),
-                TextColumn::make('checked_in_at')
-                    ->label('Waktu Check-in')
-                    ->dateTime()
+                    ->formatStateUsing(fn (?string $state): string => self::formatScanMethod($state))
                     ->sortable(),
             ])
             ->filters([
@@ -90,6 +103,14 @@ class CheckinsTable
                     ->options([
                         'qr' => 'QR',
                         'manual' => 'Manual',
+                        'unknown' => 'Tidak diketahui',
+                    ]),
+                SelectFilter::make('status')
+                    ->label('Status Scan')
+                    ->options([
+                        'success' => 'Valid',
+                        'missing' => 'Invalid',
+                        'already_scanned' => 'Scan Ulang',
                     ]),
             ])
             ->recordActions([
@@ -104,36 +125,31 @@ class CheckinsTable
                     ->visible(fn () => $isSuperAdmin),
             ])
             ->toolbarActions([
-                BulkActionGroup::make([
-                    BulkAction::make('downloadExcel')
-                        ->label('Download Excel')
-                        ->icon('heroicon-o-arrow-down-tray')
-                        ->color('gray')
-                        ->requiresConfirmation()
-                        ->modalHeading('Download Excel')
-                        ->modalSubmitActionLabel('Unduh Excel')
-                        ->visible(fn (): bool => auth()->user()?->can('ViewAny:Checkin') ?? false)
-                        ->action(function (BulkAction $action) {
-                            $user = auth()->user();
-
-                            if ($user === null) {
-                                abort(403);
-                            }
-
-                            $selectedRecords = $action->getSelectedRecords();
-
-                            $fileBaseName = 'checkin-' . now()->format('Ymd-His');
-                            $temporaryPath = app(CheckinExcelExportService::class)
-                                ->exportToTemporaryFile($selectedRecords, $fileBaseName);
-
-                            return app(CheckinExcelExportService::class)
-                                ->downloadFile($temporaryPath, strtoupper(str_replace('-', '_', $fileBaseName)) . '.xlsx');
-                        })
-                        ->deselectRecordsAfterCompletion(),
+                \Filament\Actions\BulkActionGroup::make([
                     DeleteBulkAction::make()
                         ->label('Hapus Terpilih')
                         ->visible(fn () => $isSuperAdmin),
                 ]),
             ]);
+    }
+
+    public static function formatScanStatus(?string $state): string
+    {
+        return match ($state) {
+            'success' => 'Valid',
+            'missing' => 'Invalid',
+            'already_scanned' => 'Scan Ulang',
+            default => strtoupper((string) ($state ?: '-')),
+        };
+    }
+
+    public static function formatScanMethod(?string $state): string
+    {
+        return match ($state) {
+            'qr' => 'QR',
+            'manual' => 'Manual',
+            null, '' => '-',
+            default => ucfirst($state),
+        };
     }
 }

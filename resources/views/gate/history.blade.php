@@ -14,6 +14,14 @@
                 <summary class="gate-mobile-settings-button" aria-label="Pengaturan riwayat">⚙</summary>
                 <div class="gate-mobile-settings-panel">
                     <div class="gate-mobile-settings-head">Akses Riwayat</div>
+                    <label class="scanner-setting-toggle" for="gate-theme-toggle-history">
+                        <input id="gate-theme-toggle-history" type="checkbox" data-theme-toggle>
+                        <span class="scanner-setting-toggle-indicator"></span>
+                        <span class="scanner-setting-toggle-copy">
+                            <strong>Dark Mode</strong>
+                            <small data-theme-help>Nonaktif: gunakan tampilan terang.</small>
+                        </span>
+                    </label>
                     <div class="form-hint">Data yang tampil saat ini berasal dari check-in yang berhasil tersimpan di sistem.</div>
                     <div class="gate-mobile-settings-actions">
                         <a href="{{ route('gate.dashboard', request()->filled('gate') ? ['gate' => request()->integer('gate')] : []) }}" class="button button-ghost gate-mobile-settings-logout">Kembali ke Scanner</a>

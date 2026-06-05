@@ -59,6 +59,14 @@
                 <summary class="gate-mobile-settings-button" aria-label="Pengaturan scanner">⚙</summary>
                 <div class="gate-mobile-settings-panel">
                     <div class="gate-mobile-settings-head">Pengaturan Scanner</div>
+                    <label class="scanner-setting-toggle" for="gate-theme-toggle-dashboard">
+                        <input id="gate-theme-toggle-dashboard" type="checkbox" data-theme-toggle>
+                        <span class="scanner-setting-toggle-indicator"></span>
+                        <span class="scanner-setting-toggle-copy">
+                            <strong>Dark Mode</strong>
+                            <small data-theme-help>Nonaktif: gunakan tampilan terang.</small>
+                        </span>
+                    </label>
                     <label class="scanner-setting-toggle" for="gate-auto-close-toggle">
                         <input id="gate-auto-close-toggle" type="checkbox" checked>
                         <span class="scanner-setting-toggle-indicator"></span>
@@ -155,12 +163,6 @@
                         </div>
                     </div>
                     <p class="gate-mobile-camera-hint" id="camera-message">Position ticket QR code within frame</p>
-                    <div class="gate-mobile-camera-selector">
-                        <label class="gate-mobile-camera-selector-label" for="camera-device-select">Pilih Kamera</label>
-                        <select id="camera-device-select" class="gate-mobile-camera-selector-input">
-                            <option value="">Mendeteksi kamera...</option>
-                        </select>
-                    </div>
                     <div class="camera-actions">
                         <button type="button" class="button button-primary" id="camera-toggle-button">Hentikan Kamera</button>
                         <button type="button" class="button button-ghost" id="camera-switch-button">Ganti Kamera</button>
@@ -305,7 +307,6 @@
                 const cameraMessage = document.getElementById('camera-message');
                 const cameraToggleButton = document.getElementById('camera-toggle-button');
                 const cameraSwitchButton = document.getElementById('camera-switch-button');
-                const cameraDeviceSelect = document.getElementById('camera-device-select');
                 const cameraPlaceholderBadge = document.getElementById('camera-placeholder-badge');
                 const cameraPlaceholderTitle = document.getElementById('camera-placeholder-title');
                 const cameraPlaceholderMessage = document.getElementById('camera-placeholder-message');
@@ -426,41 +427,6 @@
                     return isMobileDevice() ? Math.min(1, devices.length - 1) : 0;
                 };
 
-                const getCameraLabel = (device, index) => {
-                    const fallback = `Kamera ${index + 1}`;
-                    const rawLabel = String(device?.label || '').trim();
-
-                    if (rawLabel === '') {
-                        return fallback;
-                    }
-
-                    return rawLabel;
-                };
-
-                const syncCameraDeviceOptions = () => {
-                    if (! cameraDeviceSelect) {
-                        return;
-                    }
-
-                    if (! Array.isArray(cameraDevices) || cameraDevices.length === 0) {
-                        cameraDeviceSelect.innerHTML = '<option value="">Tidak ada kamera</option>';
-                        cameraDeviceSelect.setAttribute('disabled', 'disabled');
-                        return;
-                    }
-
-                    cameraDeviceSelect.innerHTML = cameraDevices.map((device, index) => `
-                        <option value="${device.id ?? ''}" ${index === activeCameraIndex ? 'selected' : ''}>
-                            ${getCameraLabel(device, index)}
-                        </option>
-                    `).join('');
-
-                    if (cameraDevices.length <= 1) {
-                        cameraDeviceSelect.setAttribute('disabled', 'disabled');
-                    } else {
-                        cameraDeviceSelect.removeAttribute('disabled');
-                    }
-                };
-
                 const getQrboxConfig = () => {
                     const frameWidth = cameraReader?.clientWidth || 320;
                     const qrboxSize = Math.max(180, Math.min(280, Math.floor(frameWidth * 0.62)));
@@ -529,8 +495,6 @@
                         if (cameraDevices.length > 0 && activeCameraIndex === 0) {
                             activeCameraIndex = getPreferredCameraIndex(cameraDevices);
                         }
-
-                        syncCameraDeviceOptions();
 
                         const selectedDevice = cameraDevices[activeCameraIndex] ?? cameraDevices[0] ?? null;
 
@@ -754,7 +718,19 @@
 
                     recentScansBody.innerHTML = scans.map((scan) => `
                         <article class="gate-mobile-recent-card">
-                            <div class="gate-mobile-recent-icon">✓</div>
+                            <div class="gate-mobile-recent-icon gate-history-status-${
+                                scan.status === 'Invalid'
+                                    ? 'missing'
+                                    : scan.status === 'Sudah Digunakan'
+                                        ? 'already_scanned'
+                                        : 'success'
+                            }">${
+                                scan.status === 'Invalid'
+                                    ? '✕'
+                                    : scan.status === 'Sudah Digunakan'
+                                        ? '!'
+                                        : '✓'
+                            }</div>
                             <div class="gate-mobile-recent-copy">
                                 <div class="gate-mobile-recent-name">${scan.student ?? '-'}</div>
                                 <div class="gate-mobile-recent-meta">${scan.ticket_code ?? '-'} | ${scan.status ?? 'Qr'}</div>
@@ -922,18 +898,6 @@
                 });
                 cameraSwitchButton?.addEventListener('click', () => {
                     switchCamera();
-                });
-                cameraDeviceSelect?.addEventListener('change', async (event) => {
-                    const selectedId = String(event.currentTarget?.value || '');
-                    const selectedIndex = cameraDevices.findIndex((device) => String(device?.id || '') === selectedId);
-
-                    if (selectedIndex === -1) {
-                        return;
-                    }
-
-                    activeCameraIndex = selectedIndex;
-                    cameraEnabled = true;
-                    await startCameraStream();
                 });
                 window.addEventListener('beforeunload', () => {
                     stopCameraStream();

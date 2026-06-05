@@ -6,25 +6,150 @@
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>{{ $title ?? 'Gate Dashboard' }}</title>
     @vite('resources/js/gate-scanner.js')
+    <script>
+        (() => {
+            const storageKey = 'gate.theme';
+            const storedTheme = window.localStorage.getItem(storageKey);
+            const resolvedTheme = storedTheme === 'light' || storedTheme === 'dark'
+                ? storedTheme
+                : (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+
+            document.documentElement.setAttribute('data-theme', resolvedTheme);
+        })();
+    </script>
     <style>
         :root {
             color-scheme: light;
-            --bg: #f4f7fb;
+            --bg: #fffbeb;
             --card: #ffffff;
             --text: #111827;
             --muted: #6b7280;
             --line: #e5e7eb;
+            --page-bg-start: #fff7ed;
+            --page-bg-end: #fffbeb;
+            --surface: #ffffff;
+            --surface-soft: #f8fafc;
+            --surface-soft-2: #fffaf0;
+            --surface-soft-3: #fafcff;
+            --border-soft: #f3e8c8;
+            --text-strong: #0f172a;
+            --text-heading: #0b1c30;
+            --text-soft: #475569;
+            --text-soft-2: #5b6472;
+            --text-soft-3: #7b8190;
+            --nav-bg: rgba(255, 250, 240, 0.99);
+            --topbar-bg: rgba(255, 250, 240, 0.96);
+            --modal-overlay: rgba(15, 23, 42, 0.52);
             --primary: #f59e0b;
             --primary-dark: #d97706;
-            --danger: #dc2626;
-            --success: #059669;
+            --primary-soft: #fef3c7;
+            --primary-soft-border: #fcd34d;
+            --danger: #e11d48;
+            --danger-soft: #ffe4e6;
+            --danger-soft-border: #fda4af;
+            --success: #16a34a;
+            --success-soft: #dcfce7;
+            --success-soft-border: #86efac;
+            --warning: #d97706;
+            --warning-soft: #fef3c7;
+            --warning-soft-border: #fcd34d;
+        }
+        :root[data-theme="dark"] {
+            color-scheme: dark;
+            --bg: #020617;
+            --card: #0f172a;
+            --text: #e5e7eb;
+            --muted: #94a3b8;
+            --line: #1e293b;
+            --page-bg-start: #020617;
+            --page-bg-end: #0f172a;
+            --surface: #0f172a;
+            --surface-soft: #111827;
+            --surface-soft-2: #0b1220;
+            --surface-soft-3: #111827;
+            --border-soft: #243244;
+            --text-strong: #f8fafc;
+            --text-heading: #f8fafc;
+            --text-soft: #cbd5e1;
+            --text-soft-2: #94a3b8;
+            --text-soft-3: #94a3b8;
+            --nav-bg: rgba(2, 6, 23, 0.96);
+            --topbar-bg: rgba(11, 18, 32, 0.94);
+            --modal-overlay: rgba(2, 6, 23, 0.74);
+            --primary-soft: rgba(245, 158, 11, 0.18);
+            --primary-soft-border: rgba(245, 158, 11, 0.42);
+            --danger-soft: rgba(225, 29, 72, 0.16);
+            --danger-soft-border: rgba(251, 113, 133, 0.42);
+            --success-soft: rgba(22, 163, 74, 0.16);
+            --success-soft-border: rgba(74, 222, 128, 0.35);
+            --warning-soft: rgba(217, 119, 6, 0.18);
+            --warning-soft-border: rgba(251, 191, 36, 0.38);
+        }
+        :root[data-theme="dark"] .gate-mobile-settings-button,
+        :root[data-theme="dark"] .gate-mobile-settings-panel,
+        :root[data-theme="dark"] .gate-mobile-search-input,
+        :root[data-theme="dark"] .gate-mobile-chip,
+        :root[data-theme="dark"] .gate-history-filter,
+        :root[data-theme="dark"] .gate-mobile-recent-card,
+        :root[data-theme="dark"] .gate-mobile-empty-history,
+        :root[data-theme="dark"] .scanner-setting-toggle {
+            box-shadow: none;
+        }
+        :root[data-theme="dark"] .gate-mobile-search-input::placeholder {
+            color: var(--text-soft-3);
+        }
+        :root[data-theme="dark"] .gate-mobile-settings-button {
+            color: var(--text);
+        }
+        :root[data-theme="dark"] .gate-mobile-chip.is-active,
+        :root[data-theme="dark"] .gate-history-filter.is-active {
+            color: #020617;
+            background: var(--primary);
+            border-color: var(--primary);
+        }
+        :root[data-theme="dark"] .gate-history-stat-mini {
+            border: 1px solid var(--primary-soft-border);
+        }
+        :root[data-theme="dark"] .gate-history-stat-mini.is-alt {
+            border-color: var(--line);
+            color: var(--text);
+        }
+        :root[data-theme="dark"] .gate-history-stat-mini.is-danger {
+            border: 1px solid var(--danger-soft-border);
+            color: #fb7185;
+        }
+        :root[data-theme="dark"] .gate-mobile-recent-icon {
+            background: var(--success-soft);
+            color: #4ade80;
+        }
+        :root[data-theme="dark"] .gate-history-status-success {
+            color: #4ade80;
+        }
+        :root[data-theme="dark"] .gate-history-status-already_scanned {
+            color: #fbbf24;
+        }
+        :root[data-theme="dark"] .gate-history-status-missing {
+            color: #fb7185;
+        }
+        :root[data-theme="dark"] .gate-bottom-nav-item {
+            color: var(--text-soft-2);
+        }
+        :root[data-theme="dark"] .gate-bottom-nav-item.is-active,
+        :root[data-theme="dark"] .gate-bottom-nav-item.is-active .gate-bottom-nav-icon,
+        :root[data-theme="dark"] .gate-bottom-nav-item.is-active .gate-bottom-nav-label {
+            color: var(--primary);
+        }
+        :root[data-theme="dark"] .gate-history-card-submeta,
+        :root[data-theme="dark"] .gate-mobile-recent-meta,
+        :root[data-theme="dark"] .gate-mobile-subtitle {
+            color: var(--text-soft-2);
         }
 
         * { box-sizing: border-box; }
         body {
             margin: 0;
             font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-            background: linear-gradient(180deg, #eff6ff 0%, var(--bg) 100%);
+            background: linear-gradient(180deg, var(--page-bg-start) 0%, var(--page-bg-end) 100%);
             color: var(--text);
         }
         a { color: inherit; text-decoration: none; }
@@ -41,7 +166,7 @@
         }
         @media (max-width: 768px) {
             body {
-                background: #f8f9ff;
+                background: var(--page-bg-end);
             }
             .shell {
                 align-items: stretch;
@@ -87,7 +212,8 @@
             border-radius: 14px;
             padding: 14px 16px;
             font: inherit;
-            background: white;
+            background: var(--surface);
+            color: var(--text);
         }
         input:focus {
             outline: 2px solid rgba(245, 158, 11, 0.25);
@@ -111,8 +237,8 @@
         }
         .button-primary:hover { background: var(--primary-dark); }
         .button-ghost {
-            background: #f3f4f6;
-            color: #111827;
+            background: var(--surface-soft);
+            color: var(--text);
         }
         .alert {
             border-radius: 14px;
@@ -136,9 +262,21 @@
             background: #f3f4f6;
             color: #374151;
         }
-        .badge-success { background: #d1fae5; color: #047857; }
-        .badge-warning { background: #fef3c7; color: #92400e; }
-        .badge-danger { background: #fee2e2; color: #b91c1c; }
+        .badge-success {
+            background: var(--success-soft);
+            color: #166534;
+            border: 1px solid var(--success-soft-border);
+        }
+        .badge-warning {
+            background: var(--warning-soft);
+            color: #9a3412;
+            border: 1px solid var(--warning-soft-border);
+        }
+        .badge-danger {
+            background: var(--danger-soft);
+            color: #be123c;
+            border: 1px solid var(--danger-soft-border);
+        }
         .stack { display: grid; gap: 16px; }
         .topbar {
             display: flex;
@@ -255,7 +393,7 @@
             padding: 8px;
             border: 1px solid var(--line);
             border-radius: 999px;
-            background: #f8fafc;
+            background: var(--surface-soft);
         }
         .mode-toggle-label {
             font-size: 12px;
@@ -272,7 +410,7 @@
             padding: 10px 12px;
             border: 1px solid var(--line);
             border-radius: 16px;
-            background: #fff;
+            background: var(--surface);
             cursor: pointer;
         }
         .scanner-setting-toggle input {
@@ -314,7 +452,7 @@
         }
         .scanner-setting-toggle-copy strong {
             font-size: 13px;
-            color: #0f172a;
+            color: var(--text-strong);
         }
         .scanner-setting-toggle-copy small {
             font-size: 12px;
@@ -323,7 +461,7 @@
         }
         .gate-mobile-shell {
             min-height: 100vh;
-            background: #f8f9ff;
+            background: var(--surface-soft-2);
         }
         .gate-mobile-topbar {
             position: sticky;
@@ -334,9 +472,9 @@
             justify-content: space-between;
             gap: 16px;
             padding: 20px 16px 14px;
-            background: rgba(248, 249, 255, 0.96);
+            background: var(--topbar-bg);
             backdrop-filter: blur(12px);
-            border-bottom: 1px solid #dbe3ef;
+            border-bottom: 1px solid var(--border-soft);
         }
         .gate-mobile-title-wrap {
             display: flex;
@@ -350,8 +488,8 @@
             display: grid;
             place-items: center;
             border-radius: 12px;
-            background: #e5eeff;
-            color: #131b2e;
+            background: var(--primary-soft);
+            color: var(--text-heading);
             font-size: 24px;
             font-weight: 800;
             flex: 0 0 auto;
@@ -361,13 +499,13 @@
             font-size: 18px;
             line-height: 1.2;
             font-weight: 700;
-            color: #0b1c30;
+            color: var(--text-heading);
         }
         .gate-mobile-subtitle {
             margin: 4px 0 0;
             font-size: 12px;
             line-height: 1.4;
-            color: #5b6472;
+            color: var(--text-soft-2);
         }
         .gate-mobile-settings {
             position: relative;
@@ -380,8 +518,8 @@
             display: grid;
             place-items: center;
             border-radius: 12px;
-            background: #ffffff;
-            border: 1px solid #dbe3ef;
+            background: var(--surface);
+            border: 1px solid var(--border-soft);
             cursor: pointer;
             font-size: 20px;
         }
@@ -395,15 +533,15 @@
             width: min(320px, calc(100vw - 32px));
             padding: 14px;
             border-radius: 16px;
-            border: 1px solid #dbe3ef;
-            background: #fff;
+            border: 1px solid var(--border-soft);
+            background: var(--surface);
             box-shadow: 0 20px 40px rgba(15, 23, 42, 0.12);
         }
         .gate-mobile-settings-head {
             margin-bottom: 10px;
             font-size: 13px;
             font-weight: 800;
-            color: #0b1c30;
+            color: var(--text-heading);
         }
         .gate-mobile-settings-actions {
             margin-top: 12px;
@@ -414,16 +552,16 @@
         .gate-mobile-empty {
             margin: 16px;
             padding: 16px;
-            border: 1px solid #dbe3ef;
+            border: 1px solid var(--border-soft);
             border-radius: 16px;
-            background: #fff;
-            color: #475569;
+            background: var(--surface);
+            color: var(--text-soft);
             line-height: 1.6;
         }
         .gate-mobile-empty strong {
             display: block;
             margin-bottom: 6px;
-            color: #0b1c30;
+            color: var(--text-heading);
         }
         .gate-mobile-main {
             display: grid;
@@ -447,7 +585,7 @@
             position: absolute;
             top: 50%;
             transform: translateY(-50%);
-            color: #7b8190;
+            color: var(--text-soft-3);
             font-size: 22px;
             line-height: 1;
         }
@@ -460,8 +598,8 @@
         .gate-mobile-search-input {
             padding: 16px 46px 16px 44px;
             border-radius: 16px;
-            border: 1px solid #c6d2e4;
-            background: #fff;
+            border: 1px solid var(--primary-soft-border);
+            background: var(--surface);
             font-size: 16px;
         }
         .gate-mobile-mode-row {
@@ -488,16 +626,16 @@
             flex: 0 0 auto;
             padding: 12px 18px;
             border-radius: 18px;
-            border: 1px solid #c6d2e4;
-            background: #e5eeff;
-            color: #253045;
+            border: 1px solid var(--primary-soft-border);
+            background: var(--primary-soft);
+            color: var(--text-soft);
             font-size: 14px;
             font-weight: 600;
             white-space: nowrap;
         }
         .gate-mobile-chip.is-active {
-            background: #000;
-            border-color: #000;
+            background: var(--text-heading);
+            border-color: var(--text-heading);
             color: #fff;
         }
         .gate-mobile-camera-section {
@@ -517,7 +655,7 @@
             border-radius: 0;
             overflow: hidden;
             background:
-                radial-gradient(circle at 50% 55%, rgba(0, 170, 255, 0.18), transparent 28%),
+                radial-gradient(circle at 50% 55%, rgba(245, 158, 11, 0.18), transparent 28%),
                 linear-gradient(180deg, rgba(0, 0, 0, 0.12), rgba(0, 0, 0, 0.58)),
                 #020617;
             border: 0;
@@ -535,8 +673,8 @@
             right: 22%;
             top: 22%;
             height: 2px;
-            background: linear-gradient(90deg, transparent, #2f7df6, transparent);
-            box-shadow: 0 0 18px rgba(47, 125, 246, 0.85);
+            background: linear-gradient(90deg, transparent, #f59e0b, transparent);
+            box-shadow: 0 0 18px rgba(245, 158, 11, 0.85);
             animation: gate-scan-line 2.8s ease-in-out infinite;
             z-index: 2;
         }
@@ -567,31 +705,7 @@
             text-align: center;
             font-size: 14px;
             line-height: 1.5;
-            color: #334155;
-        }
-        .gate-mobile-camera-selector {
-            display: grid;
-            gap: 6px;
-        }
-        .gate-mobile-camera-selector-label {
-            font-size: 12px;
-            font-weight: 700;
-            color: #475569;
-        }
-        .gate-mobile-camera-selector-input {
-            width: 100%;
-            min-height: 48px;
-            border: 1px solid #c6d2e4;
-            border-radius: 14px;
-            padding: 12px 14px;
-            font: inherit;
-            font-size: 14px;
-            background: #fff;
-            color: #0f172a;
-        }
-        .gate-mobile-camera-selector-input:disabled {
-            background: #f8fafc;
-            color: #94a3b8;
+            color: var(--text-soft);
         }
         .gate-mobile-section-head {
             display: flex;
@@ -603,12 +717,12 @@
             margin: 0;
             font-size: 18px;
             font-weight: 700;
-            color: #0b1c30;
+            color: var(--text-heading);
         }
         .gate-mobile-section-link {
             font-size: 14px;
             font-weight: 600;
-            color: #2f66ec;
+            color: var(--primary-dark);
         }
         .gate-mobile-recent-list {
             display: grid;
@@ -620,9 +734,9 @@
             gap: 12px;
             align-items: center;
             padding: 14px;
-            border: 1px solid #dbe3ef;
+            border: 1px solid var(--border-soft);
             border-radius: 16px;
-            background: #fff;
+            background: var(--surface);
         }
         .gate-mobile-recent-icon {
             width: 44px;
@@ -641,29 +755,29 @@
         .gate-mobile-recent-name {
             font-size: 16px;
             font-weight: 700;
-            color: #0b1c30;
+            color: var(--text-heading);
             line-height: 1.35;
         }
         .gate-mobile-recent-meta {
             margin-top: 4px;
             font-size: 13px;
             line-height: 1.45;
-            color: #5b6472;
+            color: var(--text-soft-2);
             word-break: break-word;
         }
         .gate-mobile-recent-time {
             font-size: 14px;
             font-weight: 500;
-            color: #6b7280;
+            color: var(--muted);
             text-align: right;
         }
         .gate-mobile-empty-history {
             padding: 18px 14px;
-            border: 1px solid #dbe3ef;
+            border: 1px solid var(--border-soft);
             border-radius: 16px;
-            background: #fff;
+            background: var(--surface);
             font-size: 14px;
-            color: #64748b;
+            color: var(--muted);
             text-align: center;
         }
         .gate-mobile-hidden-state {
@@ -679,9 +793,9 @@
             grid-template-columns: repeat(2, minmax(0, 1fr));
             gap: 8px;
             padding: 10px 16px calc(10px + env(safe-area-inset-bottom));
-            background: rgba(248, 249, 255, 0.99);
+            background: var(--nav-bg);
             backdrop-filter: blur(12px);
-            border-top: 1px solid #dbe3ef;
+            border-top: 1px solid var(--border-soft);
         }
         .gate-bottom-nav-item {
             display: flex;
@@ -698,7 +812,7 @@
         }
         .gate-bottom-nav-item.is-active {
             background: transparent;
-            color: #475569;
+            color: var(--primary-dark);
             box-shadow: none;
         }
         .gate-bottom-nav-icon-wrap {
@@ -710,6 +824,12 @@
         }
         .gate-bottom-nav-item.is-active .gate-bottom-nav-icon-wrap {
             background: transparent;
+        }
+        .gate-bottom-nav-item.is-active .gate-bottom-nav-icon {
+            color: var(--primary-dark);
+        }
+        .gate-bottom-nav-item.is-active .gate-bottom-nav-label {
+            color: var(--primary-dark);
         }
         .gate-bottom-nav-icon {
             font-size: 21px;
@@ -790,15 +910,15 @@
             flex: 0 0 auto;
             padding: 10px 14px;
             border-radius: 999px;
-            border: 1px solid #c6d2e4;
-            background: #fff;
-            color: #475569;
+            border: 1px solid var(--primary-soft-border);
+            background: var(--surface);
+            color: var(--text-soft);
             font-size: 13px;
             font-weight: 600;
         }
         .gate-history-filter.is-active {
-            background: #000;
-            border-color: #000;
+            background: var(--text-heading);
+            border-color: var(--text-heading);
             color: #fff;
         }
         .gate-history-stats {
@@ -813,7 +933,7 @@
             min-height: 112px;
             padding: 16px;
             border-radius: 18px;
-            background: #316bf3;
+            background: linear-gradient(135deg, var(--primary-dark) 0%, var(--primary) 100%);
             color: #fff;
         }
         .gate-history-stat-primary span,
@@ -837,15 +957,15 @@
             justify-content: space-between;
             padding: 14px 16px;
             border-radius: 16px;
-            background: #e5eeff;
-            color: #0b1c30;
+            background: var(--primary-soft);
+            color: var(--text-heading);
         }
         .gate-history-stat-mini.is-alt {
-            background: #eff4ff;
+            background: var(--surface-soft);
         }
         .gate-history-stat-mini.is-danger {
-            background: #fee2e2;
-            color: #991b1b;
+            background: var(--danger-soft);
+            color: var(--danger);
         }
         .gate-history-stat-mini strong {
             font-size: 16px;
@@ -858,19 +978,19 @@
             margin-top: 4px;
             font-size: 12px;
             line-height: 1.45;
-            color: #7b8190;
+            color: var(--text-soft-3);
         }
         .gate-history-status-success {
-            background: #ecfdf5;
-            color: #059669;
+            background: var(--success-soft);
+            color: var(--success);
         }
         .gate-history-status-already_scanned {
-            background: #fff7ed;
-            color: #d97706;
+            background: var(--warning-soft);
+            color: var(--warning);
         }
         .gate-history-status-missing {
-            background: #fef2f2;
-            color: #dc2626;
+            background: var(--danger-soft);
+            color: var(--danger);
         }
         .gate-history-pagination {
             padding-top: 8px;
@@ -888,15 +1008,15 @@
             border-radius: 999px;
             padding: 10px 14px;
             background: transparent;
-            color: #374151;
+            color: var(--text-soft);
             font: inherit;
             font-size: 13px;
             font-weight: 700;
             cursor: pointer;
         }
         .mode-option.is-active {
-            background: #fff;
-            color: #111827;
+            background: var(--surface);
+            color: var(--text);
             box-shadow: 0 1px 2px rgba(15, 23, 42, 0.08);
         }
         .search-strip-label {
@@ -939,7 +1059,7 @@
         .panel {
             border: 1px solid var(--line);
             border-radius: 18px;
-            background: #fff;
+            background: var(--surface);
             overflow: hidden;
         }
         .panel-header {
@@ -966,7 +1086,7 @@
             background:
                 radial-gradient(circle at 50% 30%, rgba(96, 165, 250, 0.12), transparent 35%),
                 linear-gradient(180deg, #111827 0%, #1f2937 100%);
-            border: 1px solid #dbe3ef;
+            border: 1px solid #f3e8c8;
             overflow: hidden;
         }
         .camera-reader {
@@ -1058,17 +1178,17 @@
             gap: 12px;
             margin-top: 14px;
             padding: 12px 14px;
-            border: 1px solid #dbeafe;
+            border: 1px solid var(--primary-soft-border);
             border-radius: 16px;
-            background: #eff6ff;
+            background: color-mix(in srgb, var(--primary-soft) 72%, var(--surface) 28%);
         }
         .scanner-readiness-indicator.is-waiting {
-            border-color: #fde68a;
-            background: #fffbeb;
+            border-color: var(--warning-soft-border);
+            background: color-mix(in srgb, var(--warning-soft) 72%, var(--surface) 28%);
         }
         .scanner-readiness-indicator.is-paused {
-            border-color: #fecaca;
-            background: #fef2f2;
+            border-color: var(--danger-soft-border);
+            background: color-mix(in srgb, var(--danger-soft) 72%, var(--surface) 28%);
         }
         .scanner-readiness-dot {
             width: 12px;
@@ -1076,7 +1196,7 @@
             flex: 0 0 12px;
             margin-top: 4px;
             border-radius: 999px;
-            background: #2563eb;
+            background: var(--primary-dark);
         }
         .scanner-readiness-indicator.is-waiting .scanner-readiness-dot {
             background: #d97706;
@@ -1091,12 +1211,12 @@
         }
         .scanner-readiness-copy strong {
             font-size: 14px;
-            color: #0f172a;
+            color: var(--text-strong);
         }
         .scanner-readiness-copy small {
             font-size: 12px;
             line-height: 1.45;
-            color: #475569;
+            color: var(--text-soft);
         }
         .button-soft {
             background: #eef2ff;
@@ -1113,7 +1233,7 @@
             color: white;
         }
         .result-banner.is-empty {
-            background: linear-gradient(135deg, #eff6ff 0%, #ffffff 100%);
+            background: linear-gradient(135deg, #fff7ed 0%, #ffffff 100%);
             color: var(--text);
             border: 1px dashed #cbd5e1;
         }
@@ -1258,7 +1378,7 @@
         .aside-illustration {
             height: 180px;
             border-radius: 16px;
-            border: 1px dashed #dbe3ef;
+            border: 1px dashed #f3e8c8;
             display: grid;
             place-items: center;
             color: var(--muted);
@@ -1305,7 +1425,7 @@
             justify-content: center;
             padding: 20px;
             overflow-y: auto;
-            background: rgba(15, 23, 42, 0.52);
+            background: var(--modal-overlay);
             z-index: 9999;
             opacity: 0;
             visibility: hidden;
@@ -1321,7 +1441,7 @@
             width: min(100%, 420px);
             max-height: calc(100dvh - 40px);
             border-radius: 24px;
-            background: #fff;
+            background: var(--surface);
             box-shadow: 0 24px 80px rgba(15, 23, 42, 0.24);
             overflow: hidden;
             transform: translateY(12px) scale(0.98);
@@ -1339,13 +1459,13 @@
             color: #fff;
         }
         .scan-modal-head.is-success {
-            background: linear-gradient(135deg, #059669 0%, #16a34a 100%);
+            background: linear-gradient(135deg, #15803d 0%, var(--success) 100%);
         }
         .scan-modal-head.is-warning {
-            background: linear-gradient(135deg, #d97706 0%, #f59e0b 100%);
+            background: linear-gradient(135deg, #b45309 0%, var(--primary) 100%);
         }
         .scan-modal-head.is-danger {
-            background: linear-gradient(135deg, #dc2626 0%, #ef4444 100%);
+            background: linear-gradient(135deg, #be123c 0%, var(--danger) 100%);
         }
         .scan-modal-icon {
             width: 88px;
@@ -1374,7 +1494,7 @@
             margin: 0;
             font-size: 15px;
             line-height: 1.55;
-            color: #334155;
+            color: var(--text-soft);
             text-align: center;
         }
         .scan-modal-details {
@@ -1388,9 +1508,9 @@
             flex-direction: column;
             gap: 4px;
             padding: 12px 14px;
-            border: 1px solid #e2e8f0;
+            border: 1px solid var(--line);
             border-radius: 16px;
-            background: #f8fafc;
+            background: var(--surface-soft);
             text-align: left;
         }
         .scan-modal-detail-label {
@@ -1398,13 +1518,13 @@
             font-weight: 800;
             letter-spacing: 0.04em;
             text-transform: uppercase;
-            color: #64748b;
+            color: var(--muted);
         }
         .scan-modal-detail-value {
             font-size: 14px;
             font-weight: 700;
             line-height: 1.45;
-            color: #0f172a;
+            color: var(--text-strong);
             word-break: break-word;
         }
         .scan-modal-detail-value:empty::before {
@@ -1482,11 +1602,46 @@
     </main>
     <script>
         (() => {
+            const storageKey = 'gate.theme';
+            const themeToggles = Array.from(document.querySelectorAll('[data-theme-toggle]'));
+            const themeHelpNodes = Array.from(document.querySelectorAll('[data-theme-help]'));
             const settingsPanels = Array.from(document.querySelectorAll('.gate-mobile-settings'));
+            const getResolvedTheme = () => {
+                const currentTheme = document.documentElement.getAttribute('data-theme');
 
-            if (settingsPanels.length === 0) {
-                return;
-            }
+                if (currentTheme === 'light' || currentTheme === 'dark') {
+                    return currentTheme;
+                }
+
+                return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+            };
+
+            const applyTheme = (theme, persist = true) => {
+                const normalizedTheme = theme === 'dark' ? 'dark' : 'light';
+                document.documentElement.setAttribute('data-theme', normalizedTheme);
+
+                themeToggles.forEach((toggle) => {
+                    toggle.checked = normalizedTheme === 'dark';
+                });
+
+                themeHelpNodes.forEach((node) => {
+                    node.textContent = normalizedTheme === 'dark'
+                        ? 'Aktif: gunakan tampilan gelap.'
+                        : 'Nonaktif: gunakan tampilan terang.';
+                });
+
+                if (persist) {
+                    window.localStorage.setItem(storageKey, normalizedTheme);
+                }
+            };
+
+            applyTheme(getResolvedTheme(), false);
+
+            themeToggles.forEach((toggle) => {
+                toggle.addEventListener('change', (event) => {
+                    applyTheme(event.currentTarget?.checked ? 'dark' : 'light');
+                });
+            });
 
             const closeAllSettingsPanels = (except = null) => {
                 settingsPanels.forEach((panel) => {
@@ -1496,25 +1651,27 @@
                 });
             };
 
-            document.addEventListener('click', (event) => {
-                const target = event.target;
-                const clickedPanel = target instanceof Element
-                    ? target.closest('.gate-mobile-settings')
-                    : null;
+            if (settingsPanels.length > 0) {
+                document.addEventListener('click', (event) => {
+                    const target = event.target;
+                    const clickedPanel = target instanceof Element
+                        ? target.closest('.gate-mobile-settings')
+                        : null;
 
-                if (clickedPanel) {
-                    closeAllSettingsPanels(clickedPanel);
-                    return;
-                }
+                    if (clickedPanel) {
+                        closeAllSettingsPanels(clickedPanel);
+                        return;
+                    }
 
-                closeAllSettingsPanels();
-            });
-
-            document.addEventListener('keydown', (event) => {
-                if (event.key === 'Escape') {
                     closeAllSettingsPanels();
-                }
-            });
+                });
+
+                document.addEventListener('keydown', (event) => {
+                    if (event.key === 'Escape') {
+                        closeAllSettingsPanels();
+                    }
+                });
+            }
         })();
     </script>
     @stack('scripts')

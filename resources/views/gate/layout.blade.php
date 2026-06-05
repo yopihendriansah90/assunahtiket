@@ -569,6 +569,30 @@
             line-height: 1.5;
             color: #334155;
         }
+        .gate-mobile-camera-selector {
+            display: grid;
+            gap: 6px;
+        }
+        .gate-mobile-camera-selector-label {
+            font-size: 12px;
+            font-weight: 700;
+            color: #475569;
+        }
+        .gate-mobile-camera-selector-input {
+            width: 100%;
+            min-height: 48px;
+            border: 1px solid #c6d2e4;
+            border-radius: 14px;
+            padding: 12px 14px;
+            font: inherit;
+            font-size: 14px;
+            background: #fff;
+            color: #0f172a;
+        }
+        .gate-mobile-camera-selector-input:disabled {
+            background: #f8fafc;
+            color: #94a3b8;
+        }
         .gate-mobile-section-head {
             display: flex;
             align-items: center;

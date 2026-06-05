@@ -484,6 +484,41 @@
                     cameraPlaceholder?.classList.toggle('is-hidden', show);
                 };
 
+                const isMobileDevice = () => {
+                    return /android|iphone|ipad|ipod/i.test(window.navigator.userAgent || '');
+                };
+
+                const getPreferredCameraIndex = (devices) => {
+                    if (! Array.isArray(devices) || devices.length === 0) {
+                        return 0;
+                    }
+
+                    const rearCameraIndex = devices.findIndex((device) => {
+                        const label = String(device?.label || '').toLowerCase();
+
+                        return label.includes('back')
+                            || label.includes('rear')
+                            || label.includes('environment')
+                            || label.includes('belakang');
+                    });
+
+                    if (rearCameraIndex !== -1) {
+                        return rearCameraIndex;
+                    }
+
+                    return isMobileDevice() ? Math.min(1, devices.length - 1) : 0;
+                };
+
+                const getQrboxConfig = () => {
+                    const frameWidth = cameraReader?.clientWidth || 320;
+                    const qrboxSize = Math.max(180, Math.min(280, Math.floor(frameWidth * 0.62)));
+
+                    return {
+                        width: qrboxSize,
+                        height: qrboxSize,
+                    };
+                };
+
                 const stopCameraStream = async () => {
                     if (! html5QrCode || ! isCameraRunning) {
                         return;
@@ -537,6 +572,13 @@
                         cameraDevices = await scannerLib.Html5Qrcode.getCameras();
 
                         cameraSwitchButton?.toggleAttribute('disabled', cameraDevices.length <= 1);
+                        if (activeCameraIndex >= cameraDevices.length) {
+                            activeCameraIndex = 0;
+                        }
+
+                        if (cameraDevices.length > 0 && activeCameraIndex === 0) {
+                            activeCameraIndex = getPreferredCameraIndex(cameraDevices);
+                        }
 
                         const selectedDevice = cameraDevices[activeCameraIndex] ?? cameraDevices[0] ?? null;
 
@@ -548,11 +590,11 @@
                         }
 
                         await html5QrCode.start(
-                            selectedDevice.id,
+                            selectedDevice.id ?? { facingMode: 'environment' },
                             {
-                                fps: 10,
-                                qrbox: { width: 240, height: 240 },
-                                aspectRatio: 4 / 3,
+                                fps: isMobileDevice() ? 12 : 10,
+                                qrbox: getQrboxConfig(),
+                                aspectRatio: isMobileDevice() ? 1 : 4 / 3,
                                 disableFlip: false,
                             },
                             (decodedText) => {
@@ -570,7 +612,15 @@
 
                         showCameraPreview(true);
                         setCameraPlaceholder('Kamera aktif', 'Arahkan QR code ke area kamera untuk scan otomatis.', 'Kamera Aktif');
-                        setCameraStatus('success', 'Kamera Aktif', selectedDevice?.label ? `Kamera aktif: ${selectedDevice.label}` : 'Kamera aktif dan siap untuk scan QR.');
+                        setCameraStatus(
+                            'success',
+                            'Kamera Aktif',
+                            selectedDevice?.label
+                                ? `Kamera aktif: ${selectedDevice.label}`
+                                : (isMobileDevice()
+                                    ? 'Kamera belakang diutamakan dan siap untuk scan QR.'
+                                    : 'Kamera aktif dan siap untuk scan QR.'),
+                        );
                         cameraToggleButton?.removeAttribute('disabled');
                         cameraToggleButton && (cameraToggleButton.textContent = 'Hentikan Kamera');
                         cameraEnabled = true;

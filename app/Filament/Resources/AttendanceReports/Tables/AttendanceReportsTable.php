@@ -52,6 +52,9 @@ class AttendanceReportsTable
                 TextColumn::make('mother_name')
                     ->label('Nama Ibu Kandung')
                     ->toggleable(),
+                TextColumn::make('mother_whatsapp')
+                    ->label('WhatsApp Ibu')
+                    ->toggleable(isToggledHiddenByDefault: true),
                 TextColumn::make('ticket.ticket_code')
                     ->label('Kode Tiket')
                     ->searchable()

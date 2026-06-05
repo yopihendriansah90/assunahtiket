@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasOne;
+use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 
 class Student extends Model
@@ -19,6 +20,7 @@ class Student extends Model
         'name',
         'gender',
         'mother_name',
+        'mother_whatsapp',
         'created_by',
         'updated_by',
     ];
@@ -42,6 +44,7 @@ class Student extends Model
 
         static::saving(function (self $student): void {
             static::ensureEventIsMutable($student);
+            $student->mother_whatsapp = static::normalizeWhatsapp($student->mother_whatsapp);
 
             if (
                 blank($student->event_id)
@@ -162,5 +165,60 @@ class Student extends Model
     public function getGenderLabelAttribute(): string
     {
         return self::genderLabel($this->gender);
+    }
+
+    public static function normalizeWhatsapp(?string $value): ?string
+    {
+        if (blank($value)) {
+            return null;
+        }
+
+        $normalized = Str::of((string) $value)
+            ->replaceMatches('/[^0-9]/', '')
+            ->trim()
+            ->toString();
+
+        if (str_starts_with($normalized, '8')) {
+            $normalized = '0' . $normalized;
+        }
+
+        return $normalized !== '' ? $normalized : null;
+    }
+
+    public static function isValidWhatsapp(?string $value): bool
+    {
+        $normalized = static::normalizeWhatsapp($value);
+
+        if (blank($normalized)) {
+            return false;
+        }
+
+        return preg_match('/^(08|628)\\d{8,15}$/', $normalized) === 1;
+    }
+
+    public function getMotherWhatsappInternationalAttribute(): ?string
+    {
+        $normalized = static::normalizeWhatsapp($this->mother_whatsapp);
+
+        if (blank($normalized)) {
+            return null;
+        }
+
+        if (str_starts_with($normalized, '0')) {
+            return '62' . substr($normalized, 1);
+        }
+
+        return $normalized;
+    }
+
+    public function motherWhatsappUrl(): ?string
+    {
+        $number = $this->mother_whatsapp_international;
+
+        if (blank($number)) {
+            return null;
+        }
+
+        return 'https://wa.me/' . $number;
     }
 }

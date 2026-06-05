@@ -5,6 +5,7 @@ namespace App\Filament\Resources\Students\Tables;
 use App\Filament\Actions\DownloadStudentTicketQrAction;
 use App\Models\Student;
 use App\Services\Tickets\TicketQrZipExportService;
+use Filament\Actions\Action;
 use Filament\Actions\BulkAction;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteBulkAction;
@@ -47,6 +48,9 @@ class StudentsTable
                     ->sortable(),
                 TextColumn::make('mother_name')
                     ->label('Nama Ibu Kandung')
+                    ->toggleable(),
+                TextColumn::make('mother_whatsapp')
+                    ->label('WhatsApp Ibu')
                     ->toggleable(),
                 TextColumn::make('createdBy.name')
                     ->label('Diinput Oleh')
@@ -99,6 +103,13 @@ class StudentsTable
                     }),
             ])
             ->recordActions([
+                Action::make('chatMotherWhatsapp')
+                    ->label('Chat WA Ibu')
+                    ->icon('heroicon-o-chat-bubble-left-right')
+                    ->color('success')
+                    ->url(fn (Student $record): ?string => $record->motherWhatsappUrl())
+                    ->openUrlInNewTab()
+                    ->visible(fn (Student $record): bool => filled($record->motherWhatsappUrl())),
                 DownloadStudentTicketQrAction::make(),
                 EditAction::make()
                     ->label('Ubah')

@@ -99,6 +99,25 @@ class StudentForm
                             }
                         };
                     }),
+                TextInput::make('mother_whatsapp')
+                    ->label('Nomor WhatsApp Ibu Kandung')
+                    ->tel()
+                    ->required()
+                    ->maxLength(20)
+                    ->placeholder('081234567890')
+                    ->helperText('Masukkan nomor WhatsApp aktif ibu kandung. Contoh: 081234567890 atau 6281234567890')
+                    ->dehydrateStateUsing(fn (?string $state): ?string => Student::normalizeWhatsapp($state))
+                    ->rule(function (): callable {
+                        return function (string $attribute, mixed $value, \Closure $fail): void {
+                            if (! Student::isValidWhatsapp(is_string($value) ? $value : null)) {
+                                $fail('Nomor WhatsApp ibu kandung harus diawali 08 atau 628 dan hanya berisi angka yang valid.');
+                            }
+                        };
+                    })
+                    ->validationMessages([
+                        'required' => 'Nomor WhatsApp ibu kandung wajib diisi.',
+                        'max' => 'Nomor WhatsApp ibu kandung maksimal 20 karakter.',
+                    ]),
             ]);
     }
 }

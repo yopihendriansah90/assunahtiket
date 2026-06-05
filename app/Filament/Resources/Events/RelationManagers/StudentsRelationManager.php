@@ -6,6 +6,7 @@ use App\Filament\Actions\DownloadStudentTicketQrAction;
 use App\Models\Student;
 use App\Services\Tickets\TicketQrZipExportService;
 use Filament\Facades\Filament;
+use Filament\Actions\Action;
 use Filament\Actions\BulkAction;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\CreateAction;
@@ -191,6 +192,26 @@ class StudentsRelationManager extends RelationManager
                             }
                         };
                     }),
+                TextInput::make('mother_whatsapp')
+                    ->label('Nomor WhatsApp Ibu Kandung')
+                    ->tel()
+                    ->required()
+                    ->maxLength(20)
+                    ->placeholder('081234567890')
+                    ->helperText('Masukkan nomor WhatsApp aktif ibu kandung.')
+                    ->dehydrateStateUsing(fn (?string $state): ?string => Student::normalizeWhatsapp($state))
+                    ->rule(function (): callable {
+                        return function (string $attribute, mixed $value, \Closure $fail): void {
+                            if (! Student::isValidWhatsapp(is_string($value) ? $value : null)) {
+                                $fail('Nomor WhatsApp ibu kandung harus diawali 08 atau 628 dan hanya berisi angka yang valid.');
+                            }
+                        };
+                    })
+                    ->validationMessages([
+                        'required' => 'Nomor WhatsApp ibu kandung wajib diisi.',
+                        'max' => 'Nomor WhatsApp ibu kandung maksimal 20 karakter.',
+                    ])
+                    ->disabled($isLocked && ! $canBypassLock),
             ]);
     }
 
@@ -231,6 +252,9 @@ class StudentsRelationManager extends RelationManager
                 TextColumn::make('mother_name')
                     ->label('Nama Ibu Kandung')
                     ->toggleable(),
+                TextColumn::make('mother_whatsapp')
+                    ->label('WhatsApp Ibu')
+                    ->toggleable(),
             ])
             ->filters([
                 SelectFilter::make('class_id')
@@ -260,6 +284,13 @@ class StudentsRelationManager extends RelationManager
                 ),
             ])
             ->recordActions([
+                Action::make('chatMotherWhatsapp')
+                    ->label('Chat WA Ibu')
+                    ->icon('heroicon-o-chat-bubble-left-right')
+                    ->color('success')
+                    ->url(fn (Student $record): ?string => $record->motherWhatsappUrl())
+                    ->openUrlInNewTab()
+                    ->visible(fn (Student $record): bool => $this->canAccessStudent($record) && filled($record->motherWhatsappUrl())),
                 DownloadStudentTicketQrAction::make()
                     ->visible(fn (Student $record): bool => $this->canAccessStudent($record)),
                 ...(

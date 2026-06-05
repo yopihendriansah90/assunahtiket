@@ -14,7 +14,9 @@ use Filament\Forms\Components\TextInput;
 use Filament\Resources\RelationManagers\RelationManager;
 use Filament\Schemas\Schema;
 use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
+use Illuminate\Database\Eloquent\Builder;
 
 class ClassesRelationManager extends RelationManager
 {
@@ -61,6 +63,26 @@ class ClassesRelationManager extends RelationManager
                     ->separator(', ')
                     ->placeholder('-')
                     ->toggleable(),
+            ])
+            ->filters([
+                SelectFilter::make('teacher_id')
+                    ->label('Guru Kelas')
+                    ->options(fn (): array => User::query()
+                        ->whereHas('roles', fn (Builder $query): Builder => $query->where('name', 'pic_sekolah'))
+                        ->orderBy('name')
+                        ->pluck('name', 'id')
+                        ->all())
+                    ->searchable()
+                    ->preload()
+                    ->query(function (Builder $query, array $data): Builder {
+                        $value = $data['value'] ?? null;
+
+                        if (blank($value)) {
+                            return $query;
+                        }
+
+                        return $query->whereHas('assignedUsers', fn (Builder $assignedUsersQuery): Builder => $assignedUsersQuery->whereKey($value));
+                    }),
             ])
             ->headerActions([
                 CreateAction::make()->label('Tambah Kelas'),

@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+
+<html lang="id"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<style>
+        body {
+            font-family: 'Inter', sans-serif;
+            -webkit-font-smoothing: antialiased;
+        }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        /* Custom Scrollbar for staff efficiency */
+        ::-webkit-scrollbar {
+            width: 4px;
+        }
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 10px;
+        }
+    </style>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "error": "#ba1a1a",
+                    "secondary": "#0051d5",
+                    "on-primary-fixed": "#131b2e",
+                    "tertiary-fixed": "#6ffbbe",
+                    "surface-tint": "#565e74",
+                    "on-tertiary": "#ffffff",
+                    "on-primary": "#ffffff",
+                    "background": "#f8f9ff",
+                    "surface-bright": "#f8f9ff",
+                    "on-tertiary-fixed": "#002113",
+                    "inverse-surface": "#213145",
+                    "on-primary-fixed-variant": "#3f465c",
+                    "on-secondary-container": "#fefcff",
+                    "outline": "#76777d",
+                    "on-secondary-fixed-variant": "#003ea8",
+                    "tertiary-container": "#002113",
+                    "tertiary": "#000000",
+                    "on-surface-variant": "#45464d",
+                    "on-error": "#ffffff",
+                    "on-surface": "#0b1c30",
+                    "on-background": "#0b1c30",
+                    "secondary-fixed": "#dbe1ff",
+                    "primary": "#000000",
+                    "surface-container-low": "#eff4ff",
+                    "surface-variant": "#d3e4fe",
+                    "on-tertiary-fixed-variant": "#005236",
+                    "surface-container": "#e5eeff",
+                    "on-tertiary-container": "#009668",
+                    "on-primary-container": "#7c839b",
+                    "primary-fixed": "#dae2fd",
+                    "secondary-fixed-dim": "#b4c5ff",
+                    "inverse-primary": "#bec6e0",
+                    "surface-dim": "#cbdbf5",
+                    "surface-container-highest": "#d3e4fe",
+                    "on-secondary-fixed": "#00174b",
+                    "on-error-container": "#93000a",
+                    "surface": "#f8f9ff",
+                    "primary-fixed-dim": "#bec6e0",
+                    "tertiary-fixed-dim": "#4edea3",
+                    "primary-container": "#131b2e",
+                    "inverse-on-surface": "#eaf1ff",
+                    "surface-container-high": "#dce9ff",
+                    "on-secondary": "#ffffff",
+                    "outline-variant": "#c6c6cd",
+                    "surface-container-lowest": "#ffffff",
+                    "error-container": "#ffdad6",
+                    "secondary-container": "#316bf3"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.125rem",
+                    "lg": "0.25rem",
+                    "xl": "0.5rem",
+                    "full": "0.75rem"
+            },
+            "spacing": {
+                    "lg": "24px",
+                    "margin": "16px",
+                    "sm": "8px",
+                    "xl": "32px",
+                    "md": "16px",
+                    "base": "4px",
+                    "xs": "4px",
+                    "gutter": "16px"
+            },
+            "fontFamily": {
+                    "display-lg": ["Inter"],
+                    "body-md": ["Inter"],
+                    "headline-sm": ["Inter"],
+                    "mono-sm": ["Inter"],
+                    "label-sm": ["Inter"],
+                    "headline-md": ["Inter"],
+                    "body-lg": ["Inter"],
+                    "label-md": ["Inter"]
+            },
+            "fontSize": {
+                    "display-lg": ["32px", {"lineHeight": "40px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                    "body-md": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                    "headline-sm": ["20px", {"lineHeight": "28px", "fontWeight": "600"}],
+                    "mono-sm": ["13px", {"lineHeight": "18px", "letterSpacing": "0.05em", "fontWeight": "400"}],
+                    "label-sm": ["12px", {"lineHeight": "16px", "letterSpacing": "0.02em", "fontWeight": "500"}],
+                    "headline-md": ["24px", {"lineHeight": "32px", "letterSpacing": "-0.01em", "fontWeight": "600"}],
+                    "body-lg": ["18px", {"lineHeight": "28px", "fontWeight": "400"}],
+                    "label-md": ["14px", {"lineHeight": "20px", "letterSpacing": "0.01em", "fontWeight": "600"}],
+                    "label-sm-mobile": ["11px", {"lineHeight": "14px", "letterSpacing": "0.02em", "fontWeight": "500"}]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background text-on-background min-h-screen flex flex-col">
+<!-- TopAppBar -->
+<header class="bg-surface docked full-width top-0 border-b border-outline-variant flex justify-between items-center w-full px-margin h-16 z-50 sticky">
+<div class="flex items-center gap-sm">
+<span class="material-symbols-outlined text-primary">qr_code_scanner</span>
+<h1 class="font-headline-sm text-headline-sm font-semibold text-primary">Riwayat Pemindaian</h1>
+</div>
+<button class="hover:bg-surface-container-low active:opacity-80 transition-opacity duration-100 p-2 rounded-full">
+<span class="material-symbols-outlined text-primary">settings</span>
+</button>
+</header>
+<!-- Main Content Area -->
+<main class="flex-1 px-margin pb-32">
+<!-- Search and Filter Section -->
+<section class="mt-md space-y-md">
+<div class="relative">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant">search</span>
+<input class="w-full bg-surface-container-lowest border border-outline-variant rounded-lg py-3 pl-10 pr-margin font-body-md text-body-md focus:border-secondary focus:ring-1 focus:ring-secondary transition-all outline-none" placeholder="Cari nama atau nomor tiket..." type="text"/>
+</div>
+<!-- Chips Container -->
+<div class="flex gap-sm overflow-x-auto pb-2 no-scrollbar">
+<button class="bg-primary text-on-primary font-label-md text-label-md px-4 py-2 rounded-full whitespace-nowrap shadow-sm">Semua</button>
+<button class="border border-outline-variant text-on-surface-variant font-label-md text-label-md px-4 py-2 rounded-full whitespace-nowrap hover:bg-surface-container-low">Valid</button>
+<button class="border border-outline-variant text-on-surface-variant font-label-md text-label-md px-4 py-2 rounded-full whitespace-nowrap hover:bg-surface-container-low">Invalid</button>
+<button class="border border-outline-variant text-on-surface-variant font-label-md text-label-md px-4 py-2 rounded-full whitespace-nowrap hover:bg-surface-container-low">Sudah Digunakan</button>
+</div>
+</section>
+<!-- Stats Overview (Asymmetric Layout) -->
+<section class="mt-xl grid grid-cols-2 gap-md">
+<div class="bg-secondary-container p-md rounded-xl flex flex-col justify-between h-28">
+<span class="font-label-md text-label-md text-on-secondary-container">Total Scan Hari Ini</span>
+<span class="font-display-lg text-display-lg text-on-secondary-container">1,284</span>
+</div>
+<div class="space-y-md">
+<div class="bg-surface-container p-sm rounded-lg flex items-center justify-between">
+<span class="font-label-sm text-label-sm text-on-surface-variant">Berhasil</span>
+<span class="font-label-md text-label-md text-on-tertiary-container">1,240</span>
+</div>
+<div class="bg-error-container p-sm rounded-lg flex items-center justify-between">
+<span class="font-label-sm text-label-sm text-on-error-container">Gagal</span>
+<span class="font-label-md text-label-md text-on-error-container">44</span>
+</div>
+</div>
+</section>
+<!-- History List -->
+<section class="mt-xl">
+<h2 class="font-label-md text-label-md text-on-surface-variant mb-md px-1">AKTIVITAS TERKINI</h2>
+<div class="space-y-base">
+<!-- History Item: Valid -->
+<div class="bg-surface-container-lowest border border-outline-variant rounded-lg p-md flex items-center gap-md hover:bg-surface-container-low transition-colors cursor-pointer">
+<div class="w-10 h-10 rounded-full bg-tertiary-fixed-dim/20 flex items-center justify-center">
+<span class="material-symbols-outlined text-on-tertiary-container" style="font-variation-settings: 'FILL' 1;">check_circle</span>
+</div>
+<div class="flex-1">
+<div class="flex justify-between items-start">
+<p class="font-label-md text-label-md text-on-surface">Budi Darmawan</p>
+<p class="font-mono-sm text-mono-sm text-on-surface-variant">14:22:10</p>
+</div>
+<div class="flex justify-between items-center mt-1">
+<p class="font-label-sm text-label-sm text-on-surface-variant">#GT1-77829-BK</p>
+<span class="font-label-sm text-label-sm text-on-tertiary-container bg-tertiary-fixed-dim/20 px-2 py-0.5 rounded">Valid</span>
+</div>
+</div>
+</div>
+<!-- History Item: Used -->
+<div class="bg-surface-container-lowest border border-outline-variant rounded-lg p-md flex items-center gap-md hover:bg-surface-container-low transition-colors cursor-pointer">
+<div class="w-10 h-10 rounded-full bg-secondary-fixed-dim/20 flex items-center justify-center">
+<span class="material-symbols-outlined text-secondary" style="font-variation-settings: 'FILL' 1;">info</span>
+</div>
+<div class="flex-1">
+<div class="flex justify-between items-start">
+<p class="font-label-md text-label-md text-on-surface">Siti Aminah</p>
+<p class="font-mono-sm text-mono-sm text-on-surface-variant">14:21:45</p>
+</div>
+<div class="flex justify-between items-center mt-1">
+<p class="font-label-sm text-label-sm text-on-surface-variant">#GT1-92103-BK</p>
+<span class="font-label-sm text-label-sm text-secondary bg-secondary-fixed-dim/20 px-2 py-0.5 rounded">Used</span>
+</div>
+</div>
+</div>
+<!-- History Item: Invalid -->
+<div class="bg-surface-container-lowest border border-outline-variant rounded-lg p-md flex items-center gap-md hover:bg-surface-container-low transition-colors cursor-pointer">
+<div class="w-10 h-10 rounded-full bg-error-container/40 flex items-center justify-center">
+<span class="material-symbols-outlined text-error" style="font-variation-settings: 'FILL' 1;">cancel</span>
+</div>
+<div class="flex-1">
+<div class="flex justify-between items-start">
+<p class="font-label-md text-label-md text-on-surface">Unknown Guest</p>
+<p class="font-mono-sm text-mono-sm text-on-surface-variant">14:19:02</p>
+</div>
+<div class="flex justify-between items-center mt-1">
+<p class="font-label-sm text-label-sm text-on-surface-variant">#XX0-00000-XX</p>
+<span class="font-label-sm text-label-sm text-error bg-error-container/40 px-2 py-0.5 rounded">Invalid</span>
+</div>
+</div>
+</div>
+<!-- History Item: Valid -->
+<div class="bg-surface-container-lowest border border-outline-variant rounded-lg p-md flex items-center gap-md hover:bg-surface-container-low transition-colors cursor-pointer">
+<div class="w-10 h-10 rounded-full bg-tertiary-fixed-dim/20 flex items-center justify-center">
+<span class="material-symbols-outlined text-on-tertiary-container" style="font-variation-settings: 'FILL' 1;">check_circle</span>
+</div>
+<div class="flex-1">
+<div class="flex justify-between items-start">
+<p class="font-label-md text-label-md text-on-surface">Andi Wijaya</p>
+<p class="font-mono-sm text-mono-sm text-on-surface-variant">14:15:30</p>
+</div>
+<div class="flex justify-between items-center mt-1">
+<p class="font-label-sm text-label-sm text-on-surface-variant">#GT1-55412-BK</p>
+<span class="font-label-sm text-label-sm text-on-tertiary-container bg-tertiary-fixed-dim/20 px-2 py-0.5 rounded">Valid</span>
+</div>
+</div>
+</div>
+<!-- History Item: Valid -->
+<div class="bg-surface-container-lowest border border-outline-variant rounded-lg p-md flex items-center gap-md hover:bg-surface-container-low transition-colors cursor-pointer">
+<div class="w-10 h-10 rounded-full bg-tertiary-fixed-dim/20 flex items-center justify-center">
+<span class="material-symbols-outlined text-on-tertiary-container" style="font-variation-settings: 'FILL' 1;">check_circle</span>
+</div>
+<div class="flex-1">
+<div class="flex justify-between items-start">
+<p class="font-label-md text-label-md text-on-surface">Rina Pratama</p>
+<p class="font-mono-sm text-mono-sm text-on-surface-variant">14:12:11</p>
+</div>
+<div class="flex justify-between items-center mt-1">
+<p class="font-label-sm text-label-sm text-on-surface-variant">#GT1-66781-BK</p>
+<span class="font-label-sm text-label-sm text-on-tertiary-container bg-tertiary-fixed-dim/20 px-2 py-0.5 rounded">Valid</span>
+</div>
+</div>
+</div>
+</div>
+<button class="w-full mt-lg py-md border-2 border-dashed border-outline-variant rounded-lg text-on-surface-variant font-label-md hover:bg-surface-container hover:border-outline transition-all">
+                Muat Lebih Banyak
+            </button>
+</section>
+</main>
+<!-- BottomNavBar -->
+<nav class="fixed bottom-0 left-0 w-full z-50 flex justify-around items-center px-gutter h-20 pb-safe bg-surface border-t border-outline-variant">
+<!-- Destination: Scanner -->
+<a class="flex flex-col items-center justify-center text-on-surface-variant hover:bg-surface-container-high transition-transform active:scale-95 duration-200" href="#">
+<span class="material-symbols-outlined">qr_code_2</span>
+<span class="font-label-sm text-label-sm-mobile mt-1">Scanner</span>
+</a>
+<!-- Destination: History (ACTIVE) -->
+<a class="flex flex-col items-center justify-center bg-secondary-container text-on-secondary-container rounded-full px-6 py-1 transition-transform active:scale-95 duration-200" href="#">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">history</span>
+<span class="font-label-sm text-label-sm-mobile mt-0.5">History</span>
+</a>
+</nav>
+<script>
+        // Simple search feedback interaction
+        const searchInput = document.querySelector('input');
+        searchInput.addEventListener('input', (e) => {
+            console.log('Searching for:', e.target.value);
+            // In a real app, this would trigger list filtering
+        });
+
+        // Chip selection interaction
+        const chips = document.querySelectorAll('.overflow-x-auto button');
+        chips.forEach(chip => {
+            chip.addEventListener('click', () => {
+                chips.forEach(c => {
+                    c.classList.remove('bg-primary', 'text-on-primary', 'shadow-sm');
+                    c.classList.add('border', 'border-outline-variant', 'text-on-surface-variant');
+                });
+                chip.classList.add('bg-primary', 'text-on-primary', 'shadow-sm');
+                chip.classList.remove('border', 'border-outline-variant', 'text-on-surface-variant');
+            });
+        });
+    </script>
+</body></html>

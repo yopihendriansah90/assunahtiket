@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+
+<html class="light" lang="id"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+          darkMode: "class",
+          theme: {
+            extend: {
+              "colors": {
+                      "tertiary": "#000000",
+                      "tertiary-container": "#002113",
+                      "tertiary-fixed-dim": "#4edea3",
+                      "secondary-container": "#316bf3",
+                      "on-surface-variant": "#45464d",
+                      "surface-container-lowest": "#ffffff",
+                      "surface-container-highest": "#d3e4fe",
+                      "on-secondary-fixed": "#00174b",
+                      "surface-container-low": "#eff4ff",
+                      "secondary-fixed-dim": "#b4c5ff",
+                      "on-primary-container": "#7c839b",
+                      "secondary-fixed": "#dbe1ff",
+                      "inverse-on-surface": "#eaf1ff",
+                      "on-secondary-fixed-variant": "#003ea8",
+                      "on-tertiary-fixed": "#002113",
+                      "on-secondary": "#ffffff",
+                      "surface-tint": "#565e74",
+                      "background": "#f8f9ff",
+                      "surface-bright": "#f8f9ff",
+                      "primary-fixed": "#dae2fd",
+                      "primary-fixed-dim": "#bec6e0",
+                      "on-error-container": "#93000a",
+                      "on-tertiary-container": "#009668",
+                      "surface-container": "#e5eeff",
+                      "inverse-primary": "#bec6e0",
+                      "on-primary-fixed": "#131b2e",
+                      "on-tertiary-fixed-variant": "#005236",
+                      "on-surface": "#0b1c30",
+                      "primary-container": "#131b2e",
+                      "on-error": "#ffffff",
+                      "tertiary-fixed": "#6ffbbe",
+                      "error": "#ba1a1a",
+                      "outline-variant": "#c6c6cd",
+                      "outline": "#76777d",
+                      "on-primary": "#ffffff",
+                      "on-background": "#0b1c30",
+                      "surface-variant": "#d3e4fe",
+                      "secondary": "#0051d5",
+                      "on-primary-fixed-variant": "#3f465c",
+                      "inverse-surface": "#213145",
+                      "surface-container-high": "#dce9ff",
+                      "on-tertiary": "#ffffff",
+                      "surface-dim": "#cbdbf5",
+                      "error-container": "#ffdad6",
+                      "surface": "#f8f9ff",
+                      "primary": "#000000",
+                      "on-secondary-container": "#fefcff"
+              },
+              "borderRadius": {
+                      "DEFAULT": "0.125rem",
+                      "lg": "0.25rem",
+                      "xl": "0.5rem",
+                      "full": "0.75rem"
+              },
+              "spacing": {
+                      "xs": "4px",
+                      "xl": "32px",
+                      "md": "16px",
+                      "gutter": "16px",
+                      "base": "4px",
+                      "sm": "8px",
+                      "lg": "24px",
+                      "margin": "16px"
+              },
+              "fontFamily": {
+                      "body-lg": ["Inter"],
+                      "mono-sm": ["Inter"],
+                      "headline-sm": ["Inter"],
+                      "label-sm": ["Inter"],
+                      "label-md": ["Inter"],
+                      "body-md": ["Inter"],
+                      "headline-md": ["Inter"],
+                      "display-lg": ["Inter"]
+              },
+              "fontSize": {
+                      "body-lg": ["18px", {"lineHeight": "28px", "fontWeight": "400"}],
+                      "mono-sm": ["13px", {"lineHeight": "18px", "letterSpacing": "0.05em", "fontWeight": "400"}],
+                      "headline-sm": ["20px", {"lineHeight": "28px", "fontWeight": "600"}],
+                      "label-sm": ["12px", {"lineHeight": "16px", "letterSpacing": "0.02em", "fontWeight": "500"}],
+                      "label-md": ["14px", {"lineHeight": "20px", "letterSpacing": "0.01em", "fontWeight": "600"}],
+                      "body-md": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                      "headline-md": ["24px", {"lineHeight": "32px", "letterSpacing": "-0.01em", "fontWeight": "600"}],
+                      "display-lg": ["32px", {"lineHeight": "40px", "letterSpacing": "-0.02em", "fontWeight": "700"}]
+              }
+            },
+          },
+        }
+    </script>
+<style>
+        .viewfinder-corner {
+            position: absolute;
+            width: 40px;
+            height: 40px;
+            border-color: white;
+            border-style: solid;
+        }
+        .animate-scan-line {
+            animation: scan 3s linear infinite;
+        }
+        @keyframes scan {
+            0% { top: 0%; opacity: 0; }
+            50% { opacity: 1; }
+            100% { top: 100%; opacity: 0; }
+        }
+        .status-pulse {
+            animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+        }
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: .5; }
+        }
+    </style>
+</head>
+<body class="bg-background text-on-background font-body-md min-h-screen flex overflow-hidden">
+<!-- SideNavBar -->
+<aside class="hidden md:flex flex-col h-screen w-64 fixed left-0 top-0 bg-surface-container py-lg px-md z-50">
+<div class="mb-xl px-md">
+<h1 class="font-headline-sm text-headline-sm text-on-surface">Gate Manager</h1>
+<div class="mt-md flex items-center gap-sm">
+<div class="w-10 h-10 rounded-xl bg-secondary-container flex items-center justify-center text-on-secondary">
+<span class="material-symbols-outlined">person</span>
+</div>
+<div>
+<p class="font-label-md text-label-md text-on-surface">Gate 4A</p>
+<p class="font-label-sm text-label-sm text-on-surface-variant">North Entrance</p>
+</div>
+</div>
+</div>
+<nav class="flex-1 space-y-sm">
+<!-- Scanner - ACTIVE -->
+<a class="flex items-center gap-md px-md py-sm bg-secondary text-on-secondary rounded-xl cursor-pointer select-none transition-all duration-200" href="#">
+<span class="material-symbols-outlined">qr_code_scanner</span>
+<span class="font-label-md text-label-md">Scanner</span>
+</a>
+<!-- History - INACTIVE -->
+<a class="flex items-center gap-md px-md py-sm text-on-surface-variant hover:bg-surface-container-high rounded-xl cursor-pointer select-none transition-all duration-200" href="#">
+<span class="material-symbols-outlined">history</span>
+<span class="font-label-md text-label-md">History</span>
+</a>
+</nav>
+<div class="mt-auto pt-lg">
+<a class="flex items-center gap-md px-md py-sm text-on-surface-variant hover:bg-surface-container-high rounded-xl cursor-pointer select-none transition-all duration-200" href="#">
+<span class="material-symbols-outlined">logout</span>
+<span class="font-label-md text-label-md">Logout</span>
+</a>
+</div>
+</aside>
+<!-- Main Content Area -->
+<main class="flex-1 md:ml-64 flex flex-col h-screen">
+<!-- TopAppBar -->
+<header class="bg-surface-container-lowest text-primary flex justify-between items-center px-lg w-full h-16 border-b border-outline-variant z-40">
+<div class="flex items-center gap-md">
+<h2 class="font-headline-sm text-headline-sm">Gate 4A - North Entrance</h2>
+</div>
+<div class="flex items-center gap-lg">
+<div class="flex items-center gap-sm px-md py-xs bg-surface-container rounded-full border border-outline-variant">
+<span class="w-2 h-2 rounded-full bg-tertiary-fixed-dim status-pulse"></span>
+<span class="font-label-sm text-label-sm text-on-surface-variant">System: Online</span>
+</div>
+<div class="flex items-center gap-md">
+<span class="material-symbols-outlined cursor-pointer text-on-surface-variant hover:bg-surface-container-low p-xs rounded-lg transition-colors">notifications</span>
+<span class="material-symbols-outlined cursor-pointer text-on-surface-variant hover:bg-surface-container-low p-xs rounded-lg transition-colors">settings</span>
+</div>
+</div>
+</header>
+<!-- Dashboard Canvas -->
+<div class="flex-1 overflow-y-auto p-lg grid grid-cols-1 xl:grid-cols-12 gap-lg bg-background">
+<!-- Left Column: Scanner Interface -->
+<section class="xl:col-span-8 flex flex-col gap-lg">
+<!-- Camera Viewfinder Card -->
+<div class="relative w-full bg-tertiary rounded-xl overflow-hidden shadow-sm aspect-video flex items-center justify-center border border-outline-variant">
+<img alt="Camera Feed" class="w-full h-full object-cover opacity-60" data-alt="A cinematic, first-person view of a high-tech event camera feed looking at a sleek event entrance. The scene is dominated by professional navy blue and cool slate tones, with soft overhead lighting reflecting off glass surfaces. In the center, a focused square area is highlighted for ticket scanning, creating an atmosphere of precision, security, and modern logistics technology in a high-contrast corporate environment." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBjRFnNgG8tcMXlcCRjYRPJ8IiqJKltIjxDwTrnLhwAoRzYo76Ar2NtidBqZSQh3oZldEANxpqRbFC6otzYdh5fz3u_WwN4as2c7v2PzFQj8TwAqmtXUFs23eG5D1j4QYKoh56XzspEn0tuP8_0AzI69QsqdLW_P_ErIdOdFY1CmzKT-qz9gwbejXjxYVpkQE4FEeCPgwGdQc5AGDqseDFNkeiIL79R3OTFmovl8D347nvFGigZitLs2cd8HAxDCpzXExwAl9CKc_q4"/>
+<!-- Viewfinder Overlay -->
+<div class="absolute inset-0 bg-black/30 pointer-events-none"></div>
+<div class="absolute w-72 h-72 border-2 border-white/20 flex items-center justify-center">
+<div class="viewfinder-corner top-0 left-0 border-t-4 border-l-4 rounded-tl-lg"></div>
+<div class="viewfinder-corner top-0 right-0 border-t-4 border-r-4 rounded-tr-lg"></div>
+<div class="viewfinder-corner bottom-0 left-0 border-b-4 border-l-4 rounded-bl-lg"></div>
+<div class="viewfinder-corner bottom-0 right-0 border-b-4 border-r-4 rounded-br-lg"></div>
+<div class="w-full h-1 bg-white/50 absolute animate-scan-line shadow-[0_0_15px_white]"></div>
+</div>
+<!-- Scanning Context Info -->
+<div class="absolute bottom-md left-md right-md flex justify-between items-end">
+<div class="bg-black/60 backdrop-blur-md px-md py-sm rounded-lg border border-white/10">
+<p class="font-label-sm text-label-sm text-white/70 uppercase">Fokus Sekarang</p>
+<p class="font-body-md text-body-md text-white">Posisikan Kode QR di Tengah</p>
+</div>
+<div class="flex gap-sm">
+<button class="bg-white/20 hover:bg-white/30 backdrop-blur-md p-sm rounded-full text-white transition-all active:scale-95">
+<span class="material-symbols-outlined">flash_on</span>
+</button>
+<button class="bg-white/20 hover:bg-white/30 backdrop-blur-md p-sm rounded-full text-white transition-all active:scale-95">
+<span class="material-symbols-outlined">flip_camera_ios</span>
+</button>
+</div>
+</div>
+</div>
+<!-- Input Controls Section -->
+<div class="grid grid-cols-1 md:grid-cols-2 gap-lg">
+<!-- Manual Entry -->
+<div class="bg-surface-container-lowest p-lg rounded-xl border border-outline-variant flex flex-col gap-md">
+<h3 class="font-label-md text-label-md text-on-surface">Input ID Manual</h3>
+<div class="flex gap-sm">
+<div class="relative flex-1">
+<span class="material-symbols-outlined absolute left-md top-1/2 -translate-y-1/2 text-on-surface-variant">keyboard</span>
+<input class="w-full pl-xl pr-md py-sm bg-white border border-outline rounded-lg focus:border-secondary focus:ring-2 focus:ring-secondary/20 outline-none transition-all font-body-md" placeholder="Masukkan Nomor Tiket..." type="text"/>
+</div>
+<button class="bg-secondary text-on-secondary px-lg py-sm rounded-lg font-label-md hover:opacity-90 active:scale-95 transition-all">
+                                Periksa
+                            </button>
+</div>
+</div>
+<!-- Gate Selection -->
+<div class="bg-surface-container-lowest p-lg rounded-xl border border-outline-variant flex flex-col gap-md">
+<h3 class="font-label-md text-label-md text-on-surface">Pilih Pintu Masuk (Gate)</h3>
+<div class="flex flex-wrap gap-sm">
+<button class="px-lg py-xs rounded-full border border-outline text-on-surface-variant font-label-sm hover:bg-surface-container transition-all">Gate 1</button>
+<button class="px-lg py-xs rounded-full border border-outline text-on-surface-variant font-label-sm hover:bg-surface-container transition-all">Gate 2</button>
+<button class="px-lg py-xs rounded-full border border-outline text-on-surface-variant font-label-sm hover:bg-surface-container transition-all">Gate 3</button>
+<button class="px-lg py-xs rounded-full bg-secondary text-on-secondary font-label-sm shadow-sm">Gate 4A</button>
+</div>
+</div>
+</div>
+</section>
+<!-- Right Column: Live Activity Feed -->
+<section class="xl:col-span-4 flex flex-col gap-lg h-full max-h-[calc(100vh-140px)]">
+<div class="bg-surface-container-lowest p-lg rounded-xl border border-outline-variant flex flex-col h-full overflow-hidden">
+<div class="flex justify-between items-center mb-lg">
+<h3 class="font-headline-sm text-headline-sm text-on-surface">Aktivitas Terkini</h3>
+<span class="bg-secondary-container text-on-secondary px-sm py-xs rounded-md font-mono-sm text-mono-sm">LIVE</span>
+</div>
+<div class="flex-1 overflow-y-auto space-y-sm pr-xs">
+<!-- Scan Item: Valid -->
+<div class="p-md rounded-xl bg-surface border border-outline-variant flex items-center gap-md hover:bg-surface-container-low transition-colors group">
+<div class="w-10 h-10 rounded-full bg-tertiary-fixed-dim/20 flex items-center justify-center text-on-tertiary-container">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">check_circle</span>
+</div>
+<div class="flex-1 overflow-hidden">
+<p class="font-body-md text-body-md text-on-surface truncate">Andi Budiman</p>
+<p class="font-label-sm text-label-sm text-on-surface-variant">ID: TKT-98214</p>
+</div>
+<div class="text-right">
+<p class="font-label-sm text-label-sm text-on-tertiary-container bg-tertiary-fixed-dim/20 px-sm py-xs rounded-md mb-xs">VALID</p>
+<p class="font-mono-sm text-mono-sm text-on-surface-variant">14:22:10</p>
+</div>
+</div>
+<!-- Scan Item: Invalid -->
+<div class="p-md rounded-xl bg-surface border border-outline-variant flex items-center gap-md hover:bg-surface-container-low transition-colors group">
+<div class="w-10 h-10 rounded-full bg-error-container flex items-center justify-center text-on-error-container">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">cancel</span>
+</div>
+<div class="flex-1 overflow-hidden">
+<p class="font-body-md text-body-md text-on-surface truncate">Budi Santoso</p>
+<p class="font-label-sm text-label-sm text-on-surface-variant">ID: TKT-11002</p>
+</div>
+<div class="text-right">
+<p class="font-label-sm text-label-sm text-on-error-container bg-error-container px-sm py-xs rounded-md mb-xs">INVALID</p>
+<p class="font-mono-sm text-mono-sm text-on-surface-variant">14:21:45</p>
+</div>
+</div>
+<!-- Scan Item: Already Used -->
+<div class="p-md rounded-xl bg-surface border border-outline-variant flex items-center gap-md hover:bg-surface-container-low transition-colors group">
+<div class="w-10 h-10 rounded-full bg-surface-variant flex items-center justify-center text-on-surface-variant">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">warning</span>
+</div>
+<div class="flex-1 overflow-hidden">
+<p class="font-body-md text-body-md text-on-surface truncate">Citra Kirana</p>
+<p class="font-label-sm text-label-sm text-on-surface-variant">ID: TKT-88392</p>
+</div>
+<div class="text-right">
+<p class="font-label-sm text-label-sm text-on-surface-variant bg-surface-variant px-sm py-xs rounded-md mb-xs">USED</p>
+<p class="font-mono-sm text-mono-sm text-on-surface-variant">14:19:30</p>
+</div>
+</div>
+<!-- More Items -->
+<div class="p-md rounded-xl bg-surface border border-outline-variant flex items-center gap-md hover:bg-surface-container-low transition-colors group">
+<div class="w-10 h-10 rounded-full bg-tertiary-fixed-dim/20 flex items-center justify-center text-on-tertiary-container">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">check_circle</span>
+</div>
+<div class="flex-1 overflow-hidden">
+<p class="font-body-md text-body-md text-on-surface truncate">Dedi Kurniawan</p>
+<p class="font-label-sm text-label-sm text-on-surface-variant">ID: TKT-77210</p>
+</div>
+<div class="text-right">
+<p class="font-label-sm text-label-sm text-on-tertiary-container bg-tertiary-fixed-dim/20 px-sm py-xs rounded-md mb-xs">VALID</p>
+<p class="font-mono-sm text-mono-sm text-on-surface-variant">14:18:12</p>
+</div>
+</div>
+<div class="p-md rounded-xl bg-surface border border-outline-variant flex items-center gap-md hover:bg-surface-container-low transition-colors group">
+<div class="w-10 h-10 rounded-full bg-tertiary-fixed-dim/20 flex items-center justify-center text-on-tertiary-container">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">check_circle</span>
+</div>
+<div class="flex-1 overflow-hidden">
+<p class="font-body-md text-body-md text-on-surface truncate">Eka Putri</p>
+<p class="font-label-sm text-label-sm text-on-surface-variant">ID: TKT-44567</p>
+</div>
+<div class="text-right">
+<p class="font-label-sm text-label-sm text-on-tertiary-container bg-tertiary-fixed-dim/20 px-sm py-xs rounded-md mb-xs">VALID</p>
+<p class="font-mono-sm text-mono-sm text-on-surface-variant">14:17:55</p>
+</div>
+</div>
+<div class="p-md rounded-xl bg-surface border border-outline-variant flex items-center gap-md hover:bg-surface-container-low transition-colors group">
+<div class="w-10 h-10 rounded-full bg-tertiary-fixed-dim/20 flex items-center justify-center text-on-tertiary-container">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">check_circle</span>
+</div>
+<div class="flex-1 overflow-hidden">
+<p class="font-body-md text-body-md text-on-surface truncate">Fajar Sidik</p>
+<p class="font-label-sm text-label-sm text-on-surface-variant">ID: TKT-33921</p>
+</div>
+<div class="text-right">
+<p class="font-label-sm text-label-sm text-on-tertiary-container bg-tertiary-fixed-dim/20 px-sm py-xs rounded-md mb-xs">VALID</p>
+<p class="font-mono-sm text-mono-sm text-on-surface-variant">14:15:04</p>
+</div>
+</div>
+</div>
+<button class="mt-lg w-full py-sm border border-secondary text-secondary rounded-lg font-label-md hover:bg-secondary-container/10 transition-all">
+                        Lihat Semua Riwayat
+                    </button>
+</div>
+</section>
+</div>
+</main>
+<script>
+        // Micro-interactions
+        document.querySelectorAll('button, a').forEach(el => {
+            el.addEventListener('mousedown', () => el.classList.add('scale-95'));
+            el.addEventListener('mouseup', () => el.classList.remove('scale-95'));
+            el.addEventListener('mouseleave', () => el.classList.remove('scale-95'));
+        });
+
+        // Simulating a scan effect
+        const viewfinder = document.querySelector('.aspect-video');
+        let scanActive = false;
+        
+        setInterval(() => {
+            if(!scanActive && Math.random() > 0.8) {
+                scanActive = true;
+                viewfinder.classList.add('ring-4', 'ring-tertiary-fixed-dim', 'transition-all', 'duration-300');
+                setTimeout(() => {
+                    viewfinder.classList.remove('ring-4', 'ring-tertiary-fixed-dim');
+                    scanActive = false;
+                }, 1000);
+            }
+        }, 5000);
+    </script>
+</body></html>

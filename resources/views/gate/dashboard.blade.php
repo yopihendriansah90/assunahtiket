@@ -46,338 +46,171 @@
             : null;
     @endphp
 
-    <div class="card" id="gate-dashboard" data-stats-url="{{ route('gate.stats', ['gate' => $activeGate?->id]) }}">
-        <div class="topbar">
-            <div>
-                <h1>Dashboard Gate</h1>
-                <p>Selamat datang, {{ $user->name }}. Pilih gate dan siapkan proses scan QR.</p>
-            </div>
-            <form method="POST" action="{{ route('gate.logout') }}">
-                @csrf
-                <button type="submit" class="button button-ghost">Logout</button>
-            </form>
-        </div>
-
-        <div class="content scanner-shell">
-            <div class="scanner-top">
-                <div class="actions">
-                    <span class="badge badge-success">Terverifikasi</span>
-                    <span class="badge">{{ $user->getRoleNames()->join(', ') }}</span>
-                    <span class="badge">{{ $gates->count() }} Gate</span>
-                </div>
-
-                <form method="GET" action="{{ route('gate.dashboard') }}" class="selector">
-                    <label for="gate">Gate aktif</label>
-                    <select id="gate" name="gate" onchange="this.form.submit()">
-                        @foreach ($gates as $gate)
-                            <option value="{{ $gate->id }}" @selected($activeGate?->id === $gate->id)>
-                                {{ $gate->name }}
-                            </option>
-                        @endforeach
-                    </select>
-                </form>
-
-                        <div style="display: flex; justify-content: flex-end;">
-                    <span class="badge {{ $activeGate?->is_active ? 'badge-success' : 'badge-warning' }}">
-                        {{ $activeGate?->is_active ? 'Gate Aktif' : 'Gate Nonaktif' }}
-                    </span>
+    <div class="gate-mobile-shell" id="gate-dashboard" data-stats-url="{{ route('gate.stats', ['gate' => $activeGate?->id]) }}">
+        <header class="gate-mobile-topbar">
+            <div class="gate-mobile-title-wrap">
+                <div class="gate-mobile-logo">⌁</div>
+                <div>
+                    <h1 class="gate-mobile-title">{{ $activeGate?->name ?? 'Dashboard Gate' }}</h1>
+                    <p class="gate-mobile-subtitle">{{ $activeGate?->event?->name ?? 'Pilih gate dan siapkan proses scan QR.' }}</p>
                 </div>
             </div>
-
-            @if (! $activeGate)
-                <div class="empty">
-                    @if (! $hasAnyGate && $isSuperAdmin)
-                        <strong>Belum ada gate yang dibuat.</strong>
-                        <div style="margin-top: 8px;">Silakan buat gate dulu dari panel admin agar dashboard gate bisa digunakan.</div>
-                    @else
-                        <strong>Tidak ada gate yang ditugaskan.</strong>
-                        <div style="margin-top: 8px;">Hubungkan akun ini ke gate terlebih dulu dari menu Pintu Masuk di panel admin.</div>
-                    @endif
+            <details class="gate-mobile-settings">
+                <summary class="gate-mobile-settings-button" aria-label="Pengaturan scanner">⚙</summary>
+                <div class="gate-mobile-settings-panel">
+                    <div class="gate-mobile-settings-head">Pengaturan Scanner</div>
+                    <label class="scanner-setting-toggle" for="gate-auto-close-toggle">
+                        <input id="gate-auto-close-toggle" type="checkbox" checked>
+                        <span class="scanner-setting-toggle-indicator"></span>
+                        <span class="scanner-setting-toggle-copy">
+                            <strong>Auto-close Notifikasi</strong>
+                            <small id="gate-auto-close-help">Aktif: modal tertutup otomatis 5 detik, scanner menunggu 5 detik.</small>
+                        </span>
+                    </label>
+                    <div class="gate-mobile-settings-actions">
+                        <form method="POST" action="{{ route('gate.logout') }}">
+                            @csrf
+                            <button type="submit" class="button button-ghost gate-mobile-settings-logout">Logout</button>
+                        </form>
+                    </div>
                 </div>
-            @else
-                <section class="search-strip">
-                    <form method="POST" action="{{ route('gate.scan') }}" class="search-strip-form" id="gate-scan-form">
+            </details>
+        </header>
+
+        @if (! $activeGate)
+            <div class="gate-mobile-empty">
+                @if (! $hasAnyGate && $isSuperAdmin)
+                    <strong>Belum ada gate yang dibuat.</strong>
+                    <div>Silakan buat gate dulu dari panel admin agar dashboard gate bisa digunakan.</div>
+                @else
+                    <strong>Tidak ada gate yang ditugaskan.</strong>
+                    <div>Hubungkan akun ini ke gate terlebih dulu dari menu Pintu Masuk di panel admin.</div>
+                @endif
+            </div>
+        @else
+            <main class="gate-mobile-main">
+                <section class="gate-mobile-search">
+                    <form method="POST" action="{{ route('gate.scan') }}" id="gate-scan-form" class="gate-mobile-search-form">
                         @csrf
                         <input type="hidden" name="gate_id" value="{{ $activeGate->id }}">
-
-                        <div class="search-strip-toolbar-row">
-                            <div class="search-strip-toolbar">
-                                <strong>Scan QR / Cari Tiket</strong>
-                                <div class="mode-toggle" role="group" aria-label="Mode input scanner">
-                                    <span class="mode-toggle-label">Mode</span>
-                                    <button type="button" class="mode-option is-active" id="gate-scan-mode-enter" data-mode="enter">
-                                        Enter
-                                    </button>
-                                    <button type="button" class="mode-option" id="gate-scan-mode-auto" data-mode="auto">
-                                        Auto
-                                    </button>
-                                </div>
+                        <div class="gate-mobile-search-box">
+                            <span class="gate-mobile-search-icon">⌕</span>
+                            <input
+                                id="q"
+                                class="gate-mobile-search-input"
+                                type="text"
+                                name="q"
+                                value="{{ old('q') }}"
+                                placeholder="Enter Ticket ID manually..."
+                                enterkeyhint="done"
+                                autocomplete="off"
+                                autofocus
+                            >
+                            <a class="gate-mobile-search-clear" href="{{ route('gate.dashboard', ['gate' => $activeGate->id]) }}" aria-label="Bersihkan input">✕</a>
+                        </div>
+                        <div class="gate-mobile-mode-row">
+                            <div class="mode-toggle" role="group" aria-label="Mode input scanner">
+                                <span class="mode-toggle-label">Mode</span>
+                                <button type="button" class="mode-option is-active" id="gate-scan-mode-enter" data-mode="enter">Enter</button>
+                                <button type="button" class="mode-option" id="gate-scan-mode-auto" data-mode="auto">Auto</button>
                             </div>
-                            <label class="scanner-setting-toggle" for="gate-auto-close-toggle">
-                                <input id="gate-auto-close-toggle" type="checkbox" checked>
-                                <span class="scanner-setting-toggle-indicator"></span>
-                                <span class="scanner-setting-toggle-copy">
-                                    <strong>Auto-close Notifikasi</strong>
-                                    <small id="gate-auto-close-help">Aktif: modal tertutup otomatis 5 detik, scanner menunggu 5 detik.</small>
-                                </span>
-                            </label>
+                            <button type="submit" class="button button-primary gate-mobile-search-submit">Scan</button>
                         </div>
-
-                        <div class="search-strip-main">
-                            <label class="search-strip-label" for="q">
-                                <input
-                                    id="q"
-                                    class="search-strip-input"
-                                    type="text"
-                                    name="q"
-                                    value="{{ old('q') }}"
-                                    placeholder="Tempel barcode scanner di sini, atau ketik kode tiket / QR token"
-                                    enterkeyhint="done"
-                                    autocomplete="off"
-                                    autofocus
-                                >
-                            </label>
-                        </div>
-
-                        <div class="actions search-strip-actions" style="justify-content: flex-end;">
-                            <a class="button button-ghost" href="{{ route('gate.dashboard', ['gate' => $activeGate->id]) }}">Bersihkan</a>
-                            <button type="submit" class="button button-primary">Scan & Check-in</button>
-                        </div>
-
                     </form>
                 </section>
 
-                <div class="scanner-grid">
-                    <section class="panel">
-                        <div class="panel-header">
-                            <h2>Scan QR Code (Kamera)</h2>
-                            <span id="camera-status-badge" class="badge badge-warning camera-status">
-                                <span class="camera-status-dot"></span>
-                                <span id="camera-status-text">Menyiapkan Kamera</span>
-                            </span>
-                        </div>
-                        <div class="panel-body">
-                            <div class="camera-frame" id="camera-frame">
-                                <div id="camera-reader" class="camera-reader is-hidden" aria-hidden="true"></div>
-                                <span class="camera-corner tl"></span>
-                                <span class="camera-corner tr"></span>
-                                <span class="camera-corner bl"></span>
-                                <span class="camera-corner br"></span>
-                                <div class="camera-placeholder" id="camera-placeholder">
-                                    <div>
-                                        <div class="badge" style="background: rgba(255,255,255,0.12); color: #fff;" id="camera-placeholder-badge">Preview Kamera</div>
-                                        <strong id="camera-placeholder-title">Siapkan scanner QR</strong>
-                                        <div style="margin-top: 8px; color: rgba(255,255,255,0.78);" id="camera-placeholder-message">
-                                            Area ini akan dipakai untuk kamera scan dan input barcode USB.
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                            <div id="camera-message" class="camera-message">
-                                Sistem akan mencoba memakai webcam yang tersedia untuk scan QR secara otomatis.
-                            </div>
+                <section class="gate-mobile-gates">
+                    <div class="gate-mobile-chip-list">
+                        @foreach ($gates as $gate)
+                            <a href="{{ route('gate.dashboard', ['gate' => $gate->id]) }}" class="gate-mobile-chip {{ $activeGate?->id === $gate->id ? 'is-active' : '' }}">
+                                {{ $gate->name }}
+                            </a>
+                        @endforeach
+                    </div>
+                </section>
 
-                            <div class="camera-actions">
-                                <button type="button" class="button button-primary" id="camera-toggle-button">Hentikan Kamera</button>
-                                <button type="button" class="button button-ghost" id="camera-switch-button">Ganti Kamera</button>
-                            </div>
-                            <div id="scanner-readiness-indicator" class="scanner-readiness-indicator is-ready">
-                                <span id="scanner-readiness-dot" class="scanner-readiness-dot"></span>
-                                <div class="scanner-readiness-copy">
-                                    <strong id="scanner-readiness-title">Scanner siap</strong>
-                                    <small id="scanner-readiness-message">Scanner siap menerima QR atau kode tiket berikutnya.</small>
-                                </div>
+                <section class="gate-mobile-camera-section">
+                    <div class="gate-mobile-camera-status-row">
+                        <span id="scan-status-badge" class="badge {{ $scanResult ? ($scanStatus === 'success' ? 'badge-success' : ($scanStatus === 'already_scanned' ? 'badge-warning' : 'badge-danger')) : 'badge-warning' }}">
+                            {{ $scanResult ? ($scanStatus === 'success' ? 'Berhasil' : ($scanStatus === 'already_scanned' ? 'Sudah Scan' : 'Tidak Ditemukan')) : 'Siap scan' }}
+                        </span>
+                        <span id="camera-status-badge" class="badge badge-warning camera-status">
+                            <span class="camera-status-dot"></span>
+                            <span id="camera-status-text">Menyiapkan Kamera</span>
+                        </span>
+                    </div>
+                    <div class="gate-mobile-camera-frame" id="camera-frame">
+                        <div id="camera-reader" class="camera-reader is-hidden" aria-hidden="true"></div>
+                        <span class="camera-corner tl"></span>
+                        <span class="camera-corner tr"></span>
+                        <span class="camera-corner bl"></span>
+                        <span class="camera-corner br"></span>
+                        <div class="camera-scan-line"></div>
+                        <div class="camera-placeholder" id="camera-placeholder">
+                            <div>
+                                <div class="gate-mobile-camera-pill" id="camera-placeholder-badge">Preview Kamera</div>
+                                <strong id="camera-placeholder-title">Siapkan scanner QR</strong>
+                                <div class="gate-mobile-camera-copy" id="camera-placeholder-message">Area ini akan dipakai untuk kamera scan dan input barcode USB.</div>
                             </div>
                         </div>
-                    </section>
+                    </div>
+                    <p class="gate-mobile-camera-hint" id="camera-message">Position ticket QR code within frame</p>
+                    <div class="camera-actions">
+                        <button type="button" class="button button-primary" id="camera-toggle-button">Hentikan Kamera</button>
+                        <button type="button" class="button button-ghost" id="camera-switch-button">Ganti Kamera</button>
+                    </div>
+                    <div id="scanner-readiness-indicator" class="scanner-readiness-indicator is-ready">
+                        <span id="scanner-readiness-dot" class="scanner-readiness-dot"></span>
+                        <div class="scanner-readiness-copy">
+                            <strong id="scanner-readiness-title">Scanner siap</strong>
+                            <small id="scanner-readiness-message">Scanner siap menerima QR atau kode tiket berikutnya.</small>
+                        </div>
+                    </div>
+                </section>
 
-                    <section class="panel">
-                        <div class="panel-header">
-                            <h2>Hasil Scan</h2>
-                            <span id="scan-status-badge" class="badge {{ $scanResult ? ($scanStatus === 'success' ? 'badge-success' : ($scanStatus === 'already_scanned' ? 'badge-warning' : 'badge-danger')) : 'badge-warning' }}">
-                                {{ $scanResult ? ($scanStatus === 'success' ? 'Berhasil' : ($scanStatus === 'already_scanned' ? 'Sudah Scan' : 'Tidak Ditemukan')) : 'Siap scan' }}
-                            </span>
-                        </div>
-                        <div class="panel-body">
-                            <div id="scan-result-banner" class="result-banner {{ $scanResult && $scanStatus === 'success' ? '' : 'is-empty' }}">
-                                <div id="scan-result-icon" class="result-check">
-                                    {{ $scanResult ? ($scanStatus === 'success' ? '✓' : '!') : '⌁' }}
+                <section class="gate-mobile-recent">
+                    <div class="gate-mobile-section-head">
+                        <h2>Recent Scans</h2>
+                        <span class="gate-mobile-section-link">Live</span>
+                    </div>
+                    <div id="recent-scans-body" class="gate-mobile-recent-list">
+                        @forelse ($recentScans as $scan)
+                            <article class="gate-mobile-recent-card">
+                                <div class="gate-mobile-recent-icon">✓</div>
+                                <div class="gate-mobile-recent-copy">
+                                    <div class="gate-mobile-recent-name">{{ $scan->ticket?->student?->name ?? '-' }}</div>
+                                    <div class="gate-mobile-recent-meta">{{ $scan->ticket?->ticket_code ?? '-' }} | {{ ucfirst($scan->scan_method ?? 'qr') }}</div>
                                 </div>
-                                <div>
-                                    <p id="scan-result-title" class="result-title">
-                                        {{ $scanResult ? ($scanStatus === 'success' ? 'VALID' : 'INFO') : 'Menunggu QR' }}
-                                    </p>
-                                    <p id="scan-result-message" class="result-subtitle" style="{{ $scanResult ? '' : 'margin-top: 0;' }}">
-                                        {{ data_get($scanResult, 'message', 'Setelah QR terbaca, check-in dibuat otomatis dan hasilnya muncul di sini.') }}
-                                    </p>
-                                </div>
-                            </div>
+                                <div class="gate-mobile-recent-time">{{ $scan->checked_in_at?->format('H:i') ?? '-' }}</div>
+                            </article>
+                        @empty
+                            <div class="gate-mobile-empty-history">Belum ada riwayat scan.</div>
+                        @endforelse
+                    </div>
+                </section>
 
-                            <div class="details-list">
-                                <div class="detail-row">
-                                    <div class="detail-label">Nama Peserta</div>
-                                    <div class="detail-value" data-scan-field="student_name">{{ $scanTicket?->student?->name ?? '-' }}</div>
-                                </div>
-                                <div class="detail-row">
-                                    <div class="detail-label">Kelas</div>
-                                    <div class="detail-value" data-scan-field="student_class">{{ $scanTicket?->student?->eventClass?->name ?? '-' }}</div>
-                                </div>
-                                <div class="detail-row">
-                                    <div class="detail-label">Kode Tiket</div>
-                                    <div class="detail-value" data-scan-field="ticket_code">{{ $scanTicket?->ticket_code ?? '-' }}</div>
-                                </div>
-                                <div class="detail-row">
-                                    <div class="detail-label">QR Token</div>
-                                    <div class="detail-value" data-scan-field="qr_token">{{ $scanTicket?->qr_token ?? '-' }}</div>
-                                </div>
-                                <div class="detail-row">
-                                    <div class="detail-label">Gate</div>
-                                    <div class="detail-value" data-scan-field="gate_name">{{ data_get($scanResult, 'gate_name', $activeGate->name) }}</div>
-                                </div>
-                                <div class="detail-row">
-                                    <div class="detail-label">Status</div>
-                                    <div class="detail-value">
-                                        @if ($scanResult)
-                                            <span id="scan-result-badge" class="badge {{ $scanStatus === 'success' ? 'badge-success' : ($scanStatus === 'already_scanned' ? 'badge-warning' : 'badge-danger') }}">
-                                                {{ $scanStatus === 'success' ? 'Check-in berhasil' : ($scanStatus === 'already_scanned' ? 'Sudah check-in' : 'Tidak ditemukan') }}
-                                            </span>
-                                        @else
-                                            <span id="scan-result-badge" class="badge badge-warning">Menunggu Scan</span>
-                                        @endif
-                                    </div>
-                                </div>
-                                <div class="detail-row">
-                                    <div class="detail-label">Waktu Check-in</div>
-                                    <div class="detail-value">
-                                        <span data-scan-field="checked_in_at">{{ $scanCheckin?->checked_in_at?->format('d/m/Y H:i:s') ?? '-' }}</span>
-                                    </div>
-                                </div>
-                                <div class="detail-row">
-                                    <div class="detail-label">Metode Scan</div>
-                                    <div class="detail-value">
-                                        <span data-scan-field="scan_method">{{ $scanCheckin?->scan_method ?? '-' }}</span>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </section>
-
-                    <aside class="stat-grid">
-                        <div class="stat-card">
-                            <div class="stat-icon" style="background: #dcfce7; color: #16a34a;">
-                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
-                                    <circle cx="8" cy="8" r="2.75" />
-                                    <circle cx="16" cy="8" r="2.75" />
-                                    <path stroke-linecap="round" stroke-linejoin="round" d="M4.5 19v-1.25A4.25 4.25 0 0 1 8.75 13.5h0A4.25 4.25 0 0 1 13 17.75V19M12.75 19v-1.5A4.25 4.25 0 0 1 17 13.25h0A4.25 4.25 0 0 1 21.25 17.5V19" />
-                                </svg>
-                            </div>
-                            <div>
-                                <p class="stat-label">Total Hadir</p>
-                                <p class="stat-value" data-stat-key="total_hadir">{{ $gateStats['total_hadir'] }}</p>
-                            </div>
-                        </div>
-                        <div class="stat-card">
-                            <div class="stat-icon" style="background: #dbeafe; color: #2563eb;">
-                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
-                                    <circle cx="12" cy="12" r="8.5" />
-                                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 7.5v4.75l3 1.75" />
-                                </svg>
-                            </div>
-                            <div>
-                                <p class="stat-label">Belum Scan</p>
-                                <p class="stat-value" data-stat-key="belum_scan">{{ $gateStats['belum_scan'] }}</p>
-                            </div>
-                        </div>
-                        <div class="stat-card">
-                            <div class="stat-icon" style="background: #ede9fe; color: #7c3aed;">
-                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
-                                    <circle cx="12" cy="12" r="8.5" />
-                                    <path stroke-linecap="round" stroke-linejoin="round" d="m9.25 12.25 1.9 1.9 3.9-4.4" />
-                                </svg>
-                            </div>
-                            <div>
-                                <p class="stat-label">Sudah Scan</p>
-                                <p class="stat-value" data-stat-key="sudah_scan">{{ $gateStats['sudah_scan'] }}</p>
-                            </div>
-                        </div>
-                        <div class="stat-card">
-                            <div class="stat-icon" style="background: #fee2e2; color: #ef4444;">
-                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
-                                    <circle cx="12" cy="12" r="8.5" />
-                                    <path stroke-linecap="round" stroke-linejoin="round" d="M9 9l6 6M15 9l-6 6" />
-                                </svg>
-                            </div>
-                            <div>
-                                <p class="stat-label">Ditolak</p>
-                                <p class="stat-value" data-stat-key="ditolak">{{ $gateStats['ditolak'] }}</p>
-                            </div>
-                        </div>
-                    </aside>
+                <div class="gate-mobile-hidden-state" aria-hidden="true">
+                    <span id="scan-result-badge" class="badge {{ $scanStatus === 'success' ? 'badge-success' : ($scanStatus === 'already_scanned' ? 'badge-warning' : 'badge-danger') }}">
+                        {{ $scanStatus === 'success' ? 'Check-in berhasil' : ($scanStatus === 'already_scanned' ? 'Sudah check-in' : 'Tidak ditemukan') }}
+                    </span>
+                    <div id="scan-result-banner" class="{{ $scanResult && $scanStatus === 'success' ? '' : 'is-empty' }}"></div>
+                    <div id="scan-result-icon">{{ $scanResult ? ($scanStatus === 'success' ? '✓' : '!') : '⌁' }}</div>
+                    <div id="scan-result-title">{{ $scanResult ? ($scanStatus === 'success' ? 'VALID' : 'INFO') : 'Menunggu QR' }}</div>
+                    <div id="scan-result-message">{{ data_get($scanResult, 'message', 'Setelah QR terbaca, check-in dibuat otomatis dan hasilnya muncul di sini.') }}</div>
+                    <div data-scan-field="student_name">{{ $scanTicket?->student?->name ?? '-' }}</div>
+                    <div data-scan-field="student_class">{{ $scanTicket?->student?->eventClass?->name ?? '-' }}</div>
+                    <div data-scan-field="ticket_code">{{ $scanTicket?->ticket_code ?? '-' }}</div>
+                    <div data-scan-field="qr_token">{{ $scanTicket?->qr_token ?? '-' }}</div>
+                    <div data-scan-field="gate_name">{{ data_get($scanResult, 'gate_name', $activeGate->name) }}</div>
+                    <div data-scan-field="checked_in_at">{{ $scanCheckin?->checked_in_at?->format('d/m/Y H:i:s') ?? '-' }}</div>
+                    <div data-scan-field="scan_method">{{ $scanCheckin?->scan_method ?? '-' }}</div>
+                    <div data-stat-key="total_hadir">{{ $gateStats['total_hadir'] }}</div>
+                    <div data-stat-key="belum_scan">{{ $gateStats['belum_scan'] }}</div>
+                    <div data-stat-key="sudah_scan">{{ $gateStats['sudah_scan'] }}</div>
+                    <div data-stat-key="ditolak">{{ $gateStats['ditolak'] }}</div>
                 </div>
-
-                <div class="subgrid">
-                    <section>
-                        <div class="panel">
-                            <div class="panel-header">
-                                <h2>Riwayat Scan Terakhir</h2>
-                            </div>
-                            <div class="panel-body" style="padding: 0;">
-                                <div class="table-shell" style="border: 0; border-radius: 0;">
-                                    <table>
-                                        <thead>
-                                            <tr>
-                                                <th>Waktu</th>
-                                                <th>Nama Peserta</th>
-                                                <th>Kode Tiket</th>
-                                                <th>Status</th>
-                                            </tr>
-                                        </thead>
-                        <tbody id="recent-scans-body">
-                            @forelse ($recentScans as $scan)
-                                <tr>
-                                    <td>{{ $scan->checked_in_at?->format('H:i:s') ?? '-' }}</td>
-                                    <td>{{ $scan->ticket?->student?->name ?? '-' }}</td>
-                                                    <td>{{ $scan->ticket?->ticket_code ?? '-' }}</td>
-                                                    <td>
-                                                        <span class="badge badge-success">
-                                                            {{ ucfirst($scan->scan_method ?? 'qr') }}
-                                                        </span>
-                                                    </td>
-                                                </tr>
-                                            @empty
-                                                <tr>
-                                                    <td colspan="4" style="text-align: center; color: var(--muted); padding: 24px;">
-                                                        Belum ada riwayat scan.
-                                                    </td>
-                                                </tr>
-                                            @endforelse
-                                        </tbody>
-                                    </table>
-                                </div>
-                            </div>
-                        </div>
-                    </section>
-
-                    <aside class="aside-card">
-                        <div class="gate-code">Pintu Masuk</div>
-                        <h3 style="margin: 8px 0 10px; font-size: 20px;">{{ $activeGate->name }}</h3>
-                        <div class="form-hint">{{ $activeGate->event?->name ?? '-' }}</div>
-                        <div style="margin-top: 16px;" class="aside-illustration">
-                            <div>
-                                <strong style="display: block; font-size: 18px; color: #334155;">Siapkan alur scan</strong>
-                                <div style="margin-top: 8px;">Dashboard ini sudah disusun untuk mode scan cepat, input USB, dan pencarian peserta.</div>
-                            </div>
-                        </div>
-                        <div class="gate-meta" style="margin-top: 16px;">
-                            <span class="badge {{ $activeGate->is_active ? 'badge-success' : 'badge-warning' }}">
-                                {{ $activeGate->is_active ? 'Aktif' : 'Nonaktif' }}
-                            </span>
-                            <span class="badge">Scan officer: {{ $activeGate->assignedUsers->count() }}</span>
-                        </div>
-                    </aside>
-                </div>
-            @endif
-        </div>
+            </main>
+        @endif
     </div>
 
     <div
@@ -496,7 +329,6 @@
 
                 const syncMode = () => {
                     const isAuto = mode === 'auto';
-
                     enterButton?.classList.toggle('is-active', ! isAuto);
                     autoButton?.classList.toggle('is-active', isAuto);
                     input.setAttribute('data-scan-mode', mode);
@@ -602,13 +434,11 @@
                     try {
                         await html5QrCode.stop();
                     } catch (error) {
-                        // ignore stop errors
                     }
 
                     try {
                         html5QrCode.clear();
                     } catch (error) {
-                        // ignore clear errors
                     }
 
                     isCameraRunning = false;
@@ -681,7 +511,6 @@
                                 submitScan();
                             },
                             () => {
-                                // ignore scan misses
                             },
                         );
 
@@ -866,12 +695,33 @@
                     }, 5000);
                 };
 
+                const renderRecentScans = (scans) => {
+                    if (! recentScansBody) {
+                        return;
+                    }
+
+                    if (! Array.isArray(scans) || scans.length === 0) {
+                        recentScansBody.innerHTML = '<div class="gate-mobile-empty-history">Belum ada riwayat scan.</div>';
+                        return;
+                    }
+
+                    recentScansBody.innerHTML = scans.map((scan) => `
+                        <article class="gate-mobile-recent-card">
+                            <div class="gate-mobile-recent-icon">✓</div>
+                            <div class="gate-mobile-recent-copy">
+                                <div class="gate-mobile-recent-name">${scan.student ?? '-'}</div>
+                                <div class="gate-mobile-recent-meta">${scan.ticket_code ?? '-'} | ${scan.status ?? 'Qr'}</div>
+                            </div>
+                            <div class="gate-mobile-recent-time">${scan.time ?? '-'}</div>
+                        </article>
+                    `).join('');
+                };
+
                 const applyScanResult = (payload) => {
                     const result = payload?.scanResult || {};
                     const ticket = result.ticket || null;
                     const checkin = result.checkin || null;
                     const status = result.status || 'missing';
-                    const isMissing = status === 'missing';
                     const isAlreadyScanned = status === 'already_scanned';
                     const isSuccess = status === 'success';
 
@@ -932,20 +782,7 @@
                         });
                     }
 
-                    if (Array.isArray(payload?.recentScans) && recentScansBody) {
-                        if (payload.recentScans.length === 0) {
-                            recentScansBody.innerHTML = '<tr><td colspan="4" style="text-align:center;color:var(--muted);padding:24px;">Belum ada riwayat scan.</td></tr>';
-                        } else {
-                            recentScansBody.innerHTML = payload.recentScans.map((scan) => `
-                                <tr>
-                                    <td>${scan.time ?? '-'}</td>
-                                    <td>${scan.student ?? '-'}</td>
-                                    <td>${scan.ticket_code ?? '-'}</td>
-                                    <td><span class="badge badge-success">${scan.status ?? 'Qr'}</span></td>
-                                </tr>
-                            `).join('');
-                        }
-                    }
+                    renderRecentScans(payload?.recentScans ?? []);
 
                     scanCooldownUntil = autoCloseEnabled ? Date.now() + 5000 : 0;
                     setScannerReadiness(
@@ -1019,7 +856,6 @@
                         const payload = await response.json();
                         applyScanResult(payload);
                     } catch (error) {
-                        // ignore polling errors
                     } finally {
                         isSubmittingScan = false;
                     }
@@ -1084,7 +920,6 @@
                             }
                         });
                     } catch (error) {
-                        // ignore polling errors
                     }
                 };
 
@@ -1110,23 +945,8 @@
                         }
 
                         const payload = await response.json();
-                        const scans = Array.isArray(payload.scans) ? payload.scans : [];
-
-                        if (scans.length === 0) {
-                            recentScansBody.innerHTML = '<tr><td colspan="4" style="text-align:center;color:var(--muted);padding:24px;">Belum ada riwayat scan.</td></tr>';
-                            return;
-                        }
-
-                        recentScansBody.innerHTML = scans.map((scan) => `
-                            <tr>
-                                <td>${scan.time ?? '-'}</td>
-                                <td>${scan.student ?? '-'}</td>
-                                <td>${scan.ticket_code ?? '-'}</td>
-                                <td><span class="badge badge-success">${scan.status ?? 'Qr'}</span></td>
-                            </tr>
-                        `).join('');
+                        renderRecentScans(Array.isArray(payload.scans) ? payload.scans : []);
                     } catch (error) {
-                        // ignore polling errors
                     }
                 };
 

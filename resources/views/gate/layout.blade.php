@@ -32,6 +32,7 @@
             --surface-soft-2: #fffaf0;
             --surface-soft-3: #fafcff;
             --border-soft: #f3e8c8;
+            --desktop-sidebar-bg: color-mix(in srgb, var(--primary-soft) 38%, var(--surface) 62%);
             --text-strong: #0f172a;
             --text-heading: #0b1c30;
             --text-soft: #475569;
@@ -68,6 +69,7 @@
             --surface-soft-2: #0b1220;
             --surface-soft-3: #111827;
             --border-soft: #243244;
+            --desktop-sidebar-bg: #151e31;
             --text-strong: #f8fafc;
             --text-heading: #f8fafc;
             --text-soft: #cbd5e1;
@@ -463,6 +465,12 @@
             min-height: 100vh;
             background: var(--surface-soft-2);
         }
+        .gate-desktop-sidebar,
+        .gate-desktop-system-badge,
+        .gate-desktop-panel-heading,
+        .gate-desktop-history-link {
+            display: none;
+        }
         .gate-mobile-topbar {
             position: sticky;
             top: 0;
@@ -567,6 +575,9 @@
             display: grid;
             gap: 16px;
             padding: 16px 16px 100px;
+        }
+        .gate-desktop-controls {
+            display: contents;
         }
         .gate-mobile-search,
         .gate-mobile-recent {
@@ -1172,6 +1183,10 @@
             gap: 12px;
             margin-top: 12px;
         }
+        .camera-actions .button-ghost {
+            border: 1px solid var(--primary-soft-border);
+            background: var(--surface);
+        }
         .scanner-readiness-indicator {
             display: flex;
             align-items: flex-start;
@@ -1544,8 +1559,252 @@
         .scan-modal-actions .button {
             min-width: 120px;
         }
+        @media (min-width: 1024px) {
+            .gate-desktop-shell {
+                width: calc(100vw - 32px);
+                min-height: calc(100vh - 32px);
+                margin-inline: calc(50% - 50vw + 16px);
+                display: grid;
+                grid-template-columns: 272px minmax(0, 1fr);
+                background: var(--surface-soft-2);
+            }
+            .gate-desktop-sidebar {
+                display: flex;
+                flex-direction: column;
+                gap: 24px;
+                padding: 32px 20px 24px;
+                background: var(--desktop-sidebar-bg);
+                border-right: 1px solid var(--border-soft);
+            }
+            .gate-desktop-sidebar-head {
+                display: grid;
+                gap: 24px;
+            }
+            .gate-desktop-sidebar-title {
+                margin: 0;
+                font-size: 24px;
+                line-height: 1.2;
+                color: var(--text-heading);
+            }
+            .gate-desktop-gate-card {
+                display: flex;
+                align-items: center;
+                gap: 14px;
+            }
+            .gate-desktop-gate-icon {
+                width: 50px;
+                height: 50px;
+                display: grid;
+                place-items: center;
+                border-radius: 14px;
+                background: var(--primary);
+                color: #111827;
+                font-size: 24px;
+                font-weight: 800;
+                flex: 0 0 auto;
+            }
+            .gate-desktop-gate-name {
+                font-size: 20px;
+                font-weight: 700;
+                color: var(--text-heading);
+                line-height: 1.25;
+            }
+            .gate-desktop-gate-event {
+                margin-top: 4px;
+                font-size: 14px;
+                line-height: 1.45;
+                color: var(--text-soft-2);
+            }
+            .gate-desktop-sidebar-nav {
+                display: grid;
+                gap: 8px;
+            }
+            .gate-desktop-sidebar-link,
+            .gate-desktop-logout-button {
+                display: flex;
+                align-items: center;
+                gap: 14px;
+                width: 100%;
+                min-height: 52px;
+                padding: 0 18px;
+                border: 1px solid transparent;
+                border-radius: 16px;
+                background: transparent;
+                color: var(--text-soft);
+                font: inherit;
+                font-size: 18px;
+                font-weight: 600;
+                cursor: pointer;
+                text-align: left;
+                transition: background 0.18s ease, border-color 0.18s ease, color 0.18s ease;
+            }
+            .gate-desktop-sidebar-link:hover,
+            .gate-desktop-logout-button:hover {
+                background: var(--surface-soft);
+                border-color: var(--line);
+            }
+            .gate-desktop-sidebar-link.is-active {
+                background: var(--primary-soft);
+                border-color: var(--primary-soft-border);
+                color: var(--primary-dark);
+            }
+            .gate-desktop-sidebar-link.is-active .gate-bottom-nav-icon {
+                color: var(--primary-dark);
+            }
+            .gate-desktop-sidebar-link.is-active .gate-desktop-sidebar-symbol {
+                color: var(--primary-dark);
+            }
+            .gate-desktop-sidebar-symbol {
+                width: 20px;
+                text-align: center;
+                font-size: 22px;
+                line-height: 1;
+                flex: 0 0 20px;
+            }
+            .gate-desktop-sidebar-footer {
+                margin-top: auto;
+            }
+            .gate-desktop-content {
+                min-width: 0;
+                display: flex;
+                flex-direction: column;
+            }
+            .gate-mobile-topbar {
+                position: sticky;
+                top: 0;
+                padding: 24px 30px;
+                background: var(--surface);
+                border-bottom: 1px solid var(--border-soft);
+            }
+            .gate-mobile-logo {
+                display: none;
+            }
+            .gate-mobile-title {
+                font-size: 24px;
+            }
+            .gate-mobile-subtitle {
+                font-size: 14px;
+            }
+            .gate-desktop-topbar-actions {
+                display: flex;
+                align-items: center;
+                gap: 16px;
+            }
+            .gate-desktop-system-badge {
+                display: inline-flex;
+                align-items: center;
+                gap: 10px;
+                min-height: 40px;
+                padding: 0 16px;
+                border: 1px solid var(--border-soft);
+                border-radius: 999px;
+                background: var(--surface-soft);
+                color: var(--text-soft);
+                font-size: 14px;
+                font-weight: 600;
+            }
+            .gate-desktop-system-dot {
+                width: 10px;
+                height: 10px;
+                border-radius: 999px;
+                background: var(--success);
+                box-shadow: 0 0 0 6px color-mix(in srgb, var(--success-soft) 80%, transparent 20%);
+            }
+            .gate-desktop-settings .gate-mobile-settings-panel {
+                top: calc(100% + 14px);
+            }
+            .gate-mobile-main.gate-desktop-main {
+                grid-template-columns: minmax(0, 1fr) 360px;
+                grid-template-areas:
+                    "camera recent"
+                    "controls recent";
+                align-items: start;
+                gap: 24px 28px;
+                padding: 30px;
+            }
+            .gate-desktop-camera-panel {
+                grid-area: camera;
+            }
+            .gate-desktop-controls {
+                grid-area: controls;
+                display: grid;
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+                gap: 24px;
+            }
+            .gate-desktop-recent-panel {
+                grid-area: recent;
+                align-self: stretch;
+                grid-template-rows: auto minmax(0, 1fr) auto;
+                min-height: calc(100vh - 170px);
+                padding: 24px;
+                border: 1px solid var(--border-soft);
+                border-radius: 24px;
+                background: var(--surface);
+            }
+            .gate-desktop-panel {
+                padding: 24px;
+                border: 1px solid var(--border-soft);
+                border-radius: 20px;
+                background: var(--surface);
+            }
+            .gate-desktop-panel-heading {
+                display: block;
+                margin-bottom: 18px;
+                font-size: 16px;
+                font-weight: 700;
+                color: var(--text-heading);
+            }
+            .gate-mobile-camera-frame {
+                aspect-ratio: 16 / 9;
+                min-height: 460px;
+                border-radius: 20px;
+                border: 1px solid var(--border-soft);
+            }
+            .gate-mobile-camera-status-row {
+                justify-content: space-between;
+            }
+            .camera-actions {
+                width: fit-content;
+                margin-left: auto;
+            }
+            .gate-mobile-chip-list {
+                flex-wrap: wrap;
+                overflow: visible;
+            }
+            .gate-mobile-search-input {
+                min-height: 56px;
+                font-size: 18px;
+            }
+            .mode-toggle {
+                min-height: 56px;
+                padding-inline: 12px;
+            }
+            .gate-mobile-search-submit {
+                min-height: 56px;
+                min-width: 104px;
+            }
+            .gate-mobile-section-link {
+                font-size: 13px;
+                text-transform: uppercase;
+                letter-spacing: 0.04em;
+            }
+            .gate-mobile-recent-list {
+                align-content: start;
+                max-height: none;
+                overflow: auto;
+                padding-right: 4px;
+            }
+            .gate-desktop-history-link {
+                display: inline-flex;
+                justify-content: center;
+                margin-top: 8px;
+            }
+            .gate-bottom-nav {
+                display: none;
+            }
+        }
         @media (min-width: 640px) {
-            .gate-mobile-shell {
+            .gate-mobile-shell:not(.gate-desktop-shell) {
                 max-width: 720px;
                 margin: 0 auto;
                 box-shadow: 0 24px 80px rgba(15, 23, 42, 0.08);

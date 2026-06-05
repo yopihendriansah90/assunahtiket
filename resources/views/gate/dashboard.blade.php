@@ -37,7 +37,7 @@
                         : null,
                     'checkin' => $scanCheckin
                         ? [
-                            'checked_in_at' => $scanCheckin?->checked_in_at?->format('d/m/Y H:i:s'),
+                            'checked_in_at' => $scanCheckin?->checked_in_at?->timezone('Asia/Jakarta')->format('d/m/Y H:i:s \W\I\B'),
                             'scan_method' => $scanCheckin?->scan_method,
                         ]
                         : null,
@@ -46,16 +46,59 @@
             : null;
     @endphp
 
-    <div class="gate-mobile-shell" id="gate-dashboard" data-stats-url="{{ route('gate.stats', ['gate' => $activeGate?->id]) }}">
+    <div class="gate-mobile-shell gate-desktop-shell" id="gate-dashboard" data-stats-url="{{ route('gate.stats', ['gate' => $activeGate?->id]) }}">
+        <aside class="gate-desktop-sidebar">
+            <div class="gate-desktop-sidebar-head">
+                <h1 class="gate-desktop-sidebar-title">Gate Manager</h1>
+                <div class="gate-desktop-gate-card">
+                    <div class="gate-desktop-gate-icon">⌁</div>
+                    <div>
+                        <div class="gate-desktop-gate-name">{{ $activeGate?->name ?? 'Gate Aktif' }}</div>
+                        <div class="gate-desktop-gate-event">{{ $activeGate?->event?->name ?? 'Pilih gate aktif' }}</div>
+                    </div>
+                </div>
+            </div>
+            <nav class="gate-desktop-sidebar-nav" aria-label="Navigasi Gate Desktop">
+                <a href="{{ route('gate.dashboard', request()->filled('gate') ? ['gate' => request()->integer('gate')] : []) }}" class="gate-desktop-sidebar-link is-active">
+                    <span class="gate-bottom-nav-icon gate-bottom-nav-icon-qr" aria-hidden="true">
+                        <span class="qr-corner tl"></span>
+                        <span class="qr-corner tr"></span>
+                        <span class="qr-corner bl"></span>
+                        <span class="qr-corner br"></span>
+                        <span class="qr-dot"></span>
+                    </span>
+                    <span>Scanner</span>
+                </a>
+                <a href="{{ route('gate.history', request()->filled('gate') ? ['gate' => request()->integer('gate')] : []) }}" class="gate-desktop-sidebar-link">
+                    <span class="gate-desktop-sidebar-symbol" aria-hidden="true">↺</span>
+                    <span>Riwayat</span>
+                </a>
+            </nav>
+            <div class="gate-desktop-sidebar-footer">
+                <form method="POST" action="{{ route('gate.logout') }}">
+                    @csrf
+                    <button type="submit" class="gate-desktop-logout-button">
+                        <span class="gate-desktop-sidebar-symbol" aria-hidden="true">↪</span>
+                        <span>Logout</span>
+                    </button>
+                </form>
+            </div>
+        </aside>
+        <div class="gate-desktop-content">
         <header class="gate-mobile-topbar">
-            <div class="gate-mobile-title-wrap">
+            <div class="gate-mobile-title-wrap gate-desktop-title-wrap">
                 <div class="gate-mobile-logo">⌁</div>
                 <div>
                     <h1 class="gate-mobile-title">{{ $activeGate?->name ?? 'Dashboard Gate' }}</h1>
                     <p class="gate-mobile-subtitle">{{ $activeGate?->event?->name ?? 'Pilih gate dan siapkan proses scan QR.' }}</p>
                 </div>
             </div>
-            <details class="gate-mobile-settings">
+            <div class="gate-desktop-topbar-actions">
+                <div class="gate-desktop-system-badge">
+                    <span class="gate-desktop-system-dot"></span>
+                    <span>Sistem: Online</span>
+                </div>
+            <details class="gate-mobile-settings gate-desktop-settings">
                 <summary class="gate-mobile-settings-button" aria-label="Pengaturan scanner">⚙</summary>
                 <div class="gate-mobile-settings-panel">
                     <div class="gate-mobile-settings-head">Pengaturan Scanner</div>
@@ -83,6 +126,7 @@
                     </div>
                 </div>
             </details>
+            </div>
         </header>
 
         @if (! $activeGate)
@@ -96,8 +140,10 @@
                 @endif
             </div>
         @else
-            <main class="gate-mobile-main">
-                <section class="gate-mobile-search">
+            <main class="gate-mobile-main gate-desktop-main">
+                <div class="gate-desktop-controls">
+                <section class="gate-mobile-search gate-desktop-panel gate-desktop-manual-panel">
+                    <div class="gate-desktop-panel-heading">Input ID Manual</div>
                     <form method="POST" action="{{ route('gate.scan') }}" id="gate-scan-form" class="gate-mobile-search-form">
                         @csrf
                         <input type="hidden" name="gate_id" value="{{ $activeGate->id }}">
@@ -127,7 +173,8 @@
                     </form>
                 </section>
 
-                <section class="gate-mobile-gates">
+                <section class="gate-mobile-gates gate-desktop-panel gate-desktop-gates-panel">
+                    <div class="gate-desktop-panel-heading">Pilih Pintu Masuk</div>
                     <div class="gate-mobile-chip-list">
                         @foreach ($gates as $gate)
                             <a href="{{ route('gate.dashboard', ['gate' => $gate->id]) }}" class="gate-mobile-chip {{ $activeGate?->id === $gate->id ? 'is-active' : '' }}">
@@ -136,8 +183,9 @@
                         @endforeach
                     </div>
                 </section>
+                </div>
 
-                <section class="gate-mobile-camera-section">
+                <section class="gate-mobile-camera-section gate-desktop-camera-panel">
                     <div class="gate-mobile-camera-status-row">
                         <span id="scan-status-badge" class="badge {{ $scanResult ? ($scanStatus === 'success' ? 'badge-success' : ($scanStatus === 'already_scanned' ? 'badge-warning' : 'badge-danger')) : 'badge-warning' }}">
                             {{ $scanResult ? ($scanStatus === 'success' ? 'Berhasil' : ($scanStatus === 'already_scanned' ? 'Sudah Scan' : 'Tidak Ditemukan')) : 'Siap scan' }}
@@ -176,9 +224,9 @@
                     </div>
                 </section>
 
-                <section class="gate-mobile-recent">
+                <section class="gate-mobile-recent gate-desktop-recent-panel">
                     <div class="gate-mobile-section-head">
-                        <h2>Recent Scans</h2>
+                        <h2>Aktivitas Terkini</h2>
                         <span class="gate-mobile-section-link">Live</span>
                     </div>
                     <div id="recent-scans-body" class="gate-mobile-recent-list">
@@ -191,12 +239,13 @@
                                     <div class="gate-mobile-recent-name">{{ $scan['student'] ?? '-' }}</div>
                                     <div class="gate-mobile-recent-meta">{{ $scan['ticket_code'] ?? '-' }} | {{ $scan['status'] ?? '-' }}</div>
                                 </div>
-                                <div class="gate-mobile-recent-time">{{ isset($scan['time']) ? \Illuminate\Support\Str::of($scan['time'])->substr(0, 5) : '-' }}</div>
+                                <div class="gate-mobile-recent-time">{{ $scan['time'] ?? '-' }}</div>
                             </article>
                         @empty
                             <div class="gate-mobile-empty-history">Belum ada riwayat scan.</div>
                         @endforelse
                     </div>
+                    <a href="{{ route('gate.history', ['gate' => $activeGate->id]) }}" class="button button-ghost gate-desktop-history-link">Lihat Semua Riwayat</a>
                 </section>
 
                 <div class="gate-mobile-hidden-state" aria-hidden="true">
@@ -212,7 +261,7 @@
                     <div data-scan-field="ticket_code">{{ $scanTicket?->ticket_code ?? '-' }}</div>
                     <div data-scan-field="qr_token">{{ $scanTicket?->qr_token ?? '-' }}</div>
                     <div data-scan-field="gate_name">{{ data_get($scanResult, 'gate_name', $activeGate->name) }}</div>
-                    <div data-scan-field="checked_in_at">{{ $scanCheckin?->checked_in_at?->format('d/m/Y H:i:s') ?? '-' }}</div>
+                    <div data-scan-field="checked_in_at">{{ $scanCheckin?->checked_in_at?->timezone('Asia/Jakarta')->format('d/m/Y H:i:s \W\I\B') ?? '-' }}</div>
                     <div data-scan-field="scan_method">{{ $scanCheckin?->scan_method ?? '-' }}</div>
                     <div data-stat-key="total_hadir">{{ $gateStats['total_hadir'] }}</div>
                     <div data-stat-key="belum_scan">{{ $gateStats['belum_scan'] }}</div>
@@ -222,6 +271,7 @@
             </main>
             @include('gate._bottom_nav', ['activeTab' => 'scanner'])
         @endif
+        </div>
     </div>
 
     <div

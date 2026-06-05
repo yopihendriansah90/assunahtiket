@@ -106,7 +106,7 @@
                                 <div class="gate-mobile-recent-meta">{{ $scan->ticket_code ?: ($scan->query ?: '-') }} | {{ $scan->class_name ?: '-' }}</div>
                                 <div class="gate-history-card-submeta">{{ $scan->gate?->name ?? '-' }} · {{ $scan->status === 'success' ? 'Valid' : ($scan->status === 'already_scanned' ? 'Sudah Digunakan' : 'Invalid') }}</div>
                             </div>
-                            <div class="gate-mobile-recent-time">{{ $scan->scanned_at?->format('H:i') ?? '-' }}</div>
+                            <div class="gate-mobile-recent-time">{{ $scan->scanned_at?->timezone('Asia/Jakarta')->format('H:i:s \W\I\B') ?? '-' }}</div>
                         </article>
                     @empty
                         <div class="gate-mobile-empty-history">Belum ada data riwayat scan untuk filter ini.</div>

@@ -1,0 +1,458 @@
+<!DOCTYPE html>
+
+<html class="light" lang="id"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Scan History - EventOps Pro</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<style>
+        body { font-family: 'Inter', sans-serif; }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .custom-scrollbar::-webkit-scrollbar { width: 6px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #e2e8f0; border-radius: 10px; }
+    </style>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "primary-fixed-dim": "#bec6e0",
+                        "on-tertiary": "#ffffff",
+                        "tertiary-fixed": "#6ffbbe",
+                        "primary-container": "#131b2e",
+                        "on-secondary-fixed-variant": "#003ea8",
+                        "on-primary": "#ffffff",
+                        "tertiary-fixed-dim": "#4edea3",
+                        "outline-variant": "#c6c6cd",
+                        "error-container": "#ffdad6",
+                        "surface-tint": "#565e74",
+                        "on-surface-variant": "#45464d",
+                        "surface-container-highest": "#d3e4fe",
+                        "background": "#f8f9ff",
+                        "on-primary-container": "#7c839b",
+                        "on-secondary": "#ffffff",
+                        "on-error-container": "#93000a",
+                        "primary-fixed": "#dae2fd",
+                        "tertiary-container": "#002113",
+                        "secondary-fixed-dim": "#b4c5ff",
+                        "on-secondary-container": "#fefcff",
+                        "surface-container": "#e5eeff",
+                        "inverse-surface": "#213145",
+                        "surface-bright": "#f8f9ff",
+                        "surface": "#f8f9ff",
+                        "on-tertiary-fixed": "#002113",
+                        "on-secondary-fixed": "#00174b",
+                        "surface-variant": "#d3e4fe",
+                        "secondary-container": "#316bf3",
+                        "secondary-fixed": "#dbe1ff",
+                        "on-primary-fixed-variant": "#3f465c",
+                        "inverse-primary": "#bec6e0",
+                        "error": "#ba1a1a",
+                        "on-surface": "#0b1c30",
+                        "inverse-on-surface": "#eaf1ff",
+                        "surface-container-lowest": "#ffffff",
+                        "surface-dim": "#cbdbf5",
+                        "on-error": "#ffffff",
+                        "on-tertiary-fixed-variant": "#005236",
+                        "secondary": "#0051d5",
+                        "on-background": "#0b1c30",
+                        "surface-container-low": "#eff4ff",
+                        "on-primary-fixed": "#131b2e",
+                        "tertiary": "#000000",
+                        "outline": "#76777d",
+                        "surface-container-high": "#dce9ff",
+                        "primary": "#000000",
+                        "on-tertiary-container": "#009668"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.125rem",
+                        "lg": "0.25rem",
+                        "xl": "0.5rem",
+                        "full": "0.75rem"
+                    },
+                    "spacing": {
+                        "md": "16px",
+                        "lg": "24px",
+                        "margin": "16px",
+                        "gutter": "16px",
+                        "xs": "4px",
+                        "xl": "32px",
+                        "sm": "8px",
+                        "base": "4px"
+                    },
+                    "fontFamily": {
+                        "body-lg": ["Inter"],
+                        "headline-md": ["Inter"],
+                        "label-md": ["Inter"],
+                        "display-lg": ["Inter"],
+                        "label-sm": ["Inter"],
+                        "mono-sm": ["Inter"],
+                        "headline-sm": ["Inter"],
+                        "body-md": ["Inter"]
+                    },
+                    "fontSize": {
+                        "body-lg": ["18px", {"lineHeight": "28px", "fontWeight": "400"}],
+                        "headline-md": ["24px", {"lineHeight": "32px", "letterSpacing": "-0.01em", "fontWeight": "600"}],
+                        "label-md": ["14px", {"lineHeight": "20px", "letterSpacing": "0.01em", "fontWeight": "600"}],
+                        "display-lg": ["32px", {"lineHeight": "40px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                        "label-sm": ["12px", {"lineHeight": "16px", "letterSpacing": "0.02em", "fontWeight": "500"}],
+                        "mono-sm": ["13px", {"lineHeight": "18px", "letterSpacing": "0.05em", "fontWeight": "400"}],
+                        "headline-sm": ["20px", {"lineHeight": "28px", "fontWeight": "600"}],
+                        "body-md": ["16px", {"lineHeight": "24px", "fontWeight": "400"}]
+                    }
+                },
+            },
+        }
+    </script>
+</head>
+<body class="bg-background text-on-background min-h-screen">
+<!-- SIDEBAR -->
+<aside class="h-screen w-64 fixed left-0 top-0 bg-surface-container-lowest dark:bg-inverse-surface border-r border-outline-variant dark:border-outline flex flex-col py-lg px-md z-50">
+<div class="mb-xl px-sm">
+<h1 class="font-headline-sm text-headline-sm font-bold text-on-surface dark:text-inverse-on-surface">EventOps Pro</h1>
+<p class="font-label-sm text-label-sm text-on-surface-variant opacity-70">System Administrator</p>
+</div>
+<nav class="flex-grow space-y-base">
+<a class="flex items-center gap-md p-md text-on-surface-variant dark:text-surface-variant hover:bg-surface-container-low dark:hover:bg-surface-variant transition-colors duration-200 rounded-xl font-body-md text-body-md" href="#">
+<span class="material-symbols-outlined" data-icon="dashboard">dashboard</span>
+<span>Dashboard</span>
+</a>
+<a class="flex items-center gap-md p-md text-on-surface-variant dark:text-surface-variant hover:bg-surface-container-low dark:hover:bg-surface-variant transition-colors duration-200 rounded-xl font-body-md text-body-md" href="#">
+<span class="material-symbols-outlined" data-icon="qr_code_scanner">qr_code_scanner</span>
+<span>Ticket Scanner</span>
+</a>
+<!-- Active Tab: Scan History -->
+<a class="flex items-center gap-md p-md bg-secondary-container text-on-secondary-container dark:bg-secondary dark:text-on-secondary rounded-xl font-bold font-body-md text-body-md transition-transform active:scale-95" href="#">
+<span class="material-symbols-outlined" data-icon="history">history</span>
+<span>Scan History</span>
+</a>
+<a class="flex items-center gap-md p-md text-on-surface-variant dark:text-surface-variant hover:bg-surface-container-low dark:hover:bg-surface-variant transition-colors duration-200 rounded-xl font-body-md text-body-md" href="#">
+<span class="material-symbols-outlined" data-icon="door_front">door_front</span>
+<span>Gate Management</span>
+</a>
+<a class="flex items-center gap-md p-md text-on-surface-variant dark:text-surface-variant hover:bg-surface-container-low dark:hover:bg-surface-variant transition-colors duration-200 rounded-xl font-body-md text-body-md" href="#">
+<span class="material-symbols-outlined" data-icon="settings">settings</span>
+<span>System Settings</span>
+</a>
+</nav>
+<div class="mt-auto border-t border-outline-variant pt-md space-y-base">
+<a class="flex items-center gap-md p-md text-on-surface-variant hover:bg-surface-container-low rounded-xl font-body-md text-body-md" href="#">
+<span class="material-symbols-outlined" data-icon="help_center">help_center</span>
+<span>Support</span>
+</a>
+<a class="flex items-center gap-md p-md text-error hover:bg-error-container hover:text-on-error-container rounded-xl font-body-md text-body-md" href="#">
+<span class="material-symbols-outlined" data-icon="logout">logout</span>
+<span>Logout</span>
+</a>
+</div>
+</aside>
+<!-- TOPBAR -->
+<header class="fixed top-0 right-0 w-[calc(100%-16rem)] h-16 bg-surface dark:bg-on-primary-container border-b border-outline-variant dark:border-outline flex justify-between items-center px-xl ml-64 z-40">
+<div class="flex items-center gap-xl">
+<h2 class="font-headline-sm text-headline-sm font-black text-on-surface dark:text-inverse-on-surface">Scan History Dashboard</h2>
+<nav class="hidden md:flex items-center gap-lg">
+<a class="font-label-md text-label-md text-on-surface-variant hover:text-primary transition-colors" href="#">Live Feed</a>
+<a class="font-label-md text-label-md text-on-surface-variant hover:text-primary transition-colors" href="#">Analytics</a>
+<a class="font-label-md text-label-md text-secondary border-b-2 border-secondary font-bold" href="#">Reports</a>
+</nav>
+</div>
+<div class="flex items-center gap-md">
+<div class="flex items-center gap-sm pr-md border-r border-outline-variant">
+<span class="material-symbols-outlined text-on-surface-variant cursor-pointer active:opacity-70" data-icon="notifications">notifications</span>
+<span class="material-symbols-outlined text-on-surface-variant" data-icon="wifi">wifi</span>
+<span class="material-symbols-outlined text-on-surface-variant" data-icon="battery_full">battery_full</span>
+</div>
+<div class="flex items-center gap-sm pl-sm">
+<img alt="Admin Avatar" class="w-8 h-8 rounded-full bg-surface-container-high border border-outline-variant" data-alt="A professional headshot of a corporate system administrator with a clean, minimalist aesthetic. The lighting is soft and even, highlighting the subject against a blurred high-tech office background. The color palette is dominated by professional blues and greys, conveying trust, authority, and high-performance reliability." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDlg_fYqc-JsiDHE_mcu8Q6ZSVNO6Q4TEElntspy6YQADdU3XpwdaxdWG1Pbqc3N3-90XWD_UbmlXQVVaShOSOnVOJNWhe40wSsM4yntun6UXNicPAjUFlw2xAJNwkuSVS0ZTNWsl5gRDqRArHA-etEUwZeBoq9Zsfc09mOpp3g6aFdti4k4cVellRZzIvknWUo1npYbtLlCNOKwYzzgUsnpsa2E1IG-tPYvzzKwzxjWDQhJIhgbM0gg3BbrOhTNc93qlPwrg6SlqZj"/>
+<span class="font-label-md text-label-md text-on-surface">Admin</span>
+</div>
+</div>
+</header>
+<!-- MAIN CONTENT -->
+<main class="ml-64 pt-24 p-xl max-w-[1600px]">
+<!-- Header & Action Row -->
+<div class="flex flex-col md:flex-row md:items-end justify-between gap-md mb-lg">
+<div>
+<h3 class="font-display-lg text-display-lg text-on-surface">History Log</h3>
+<p class="font-body-md text-body-md text-on-surface-variant">Real-time ticket validation records across all active gates.</p>
+</div>
+<div class="flex items-center gap-sm">
+<button class="flex items-center gap-sm bg-secondary text-on-secondary px-lg py-sm rounded-xl font-label-md text-label-md transition-transform active:scale-95 shadow-sm">
+<span class="material-symbols-outlined text-[20px]" data-icon="download">download</span>
+                    Export CSV
+                </button>
+<button class="flex items-center gap-sm bg-surface-container-lowest border border-outline text-on-surface px-lg py-sm rounded-xl font-label-md text-label-md hover:bg-surface-container-low transition-colors active:scale-95">
+<span class="material-symbols-outlined text-[20px]" data-icon="refresh">refresh</span>
+                    Refresh Data
+                </button>
+</div>
+</div>
+<!-- Filter & Search Bar -->
+<div class="bg-surface-container-low p-md rounded-xl border border-outline-variant mb-lg flex flex-wrap items-center gap-md">
+<!-- Search -->
+<div class="relative flex-grow min-w-[300px]">
+<span class="material-symbols-outlined absolute left-md top-1/2 -translate-y-1/2 text-on-surface-variant" data-icon="search">search</span>
+<input class="w-full pl-xl pr-md py-sm bg-surface-container-lowest border border-outline rounded-xl font-body-md text-body-md focus:ring-2 focus:ring-secondary focus:border-secondary outline-none transition-all" placeholder="Search Guest Name or Ticket ID..." type="text"/>
+</div>
+<!-- Filters -->
+<div class="flex items-center gap-sm flex-wrap">
+<div class="flex items-center gap-xs">
+<span class="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider ml-sm">Status:</span>
+<select class="bg-surface-container-lowest border border-outline rounded-lg px-sm py-xs font-label-md text-label-md outline-none focus:ring-1 focus:ring-secondary">
+<option>All Statuses</option>
+<option>Valid</option>
+<option>Invalid</option>
+<option>Used</option>
+</select>
+</div>
+<div class="flex items-center gap-xs">
+<span class="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider ml-sm">Gate:</span>
+<select class="bg-surface-container-lowest border border-outline rounded-lg px-sm py-xs font-label-md text-label-md outline-none focus:ring-1 focus:ring-secondary">
+<option>All Gates</option>
+<option>Main Entrance 01</option>
+<option>VIP Gate 02</option>
+<option>Backstage 03</option>
+</select>
+</div>
+<div class="flex items-center gap-xs">
+<span class="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider ml-sm">Date Range:</span>
+<div class="flex items-center bg-surface-container-lowest border border-outline rounded-lg px-sm py-xs font-label-md text-label-md">
+<input class="bg-transparent border-none p-0 outline-none text-on-surface focus:ring-0" type="date"/>
+<span class="mx-xs text-outline">-</span>
+<input class="bg-transparent border-none p-0 outline-none text-on-surface focus:ring-0" type="date"/>
+</div>
+</div>
+</div>
+<button class="ml-auto text-secondary font-label-md text-label-md hover:underline">Clear All</button>
+</div>
+<!-- Data Table Card -->
+<div class="bg-surface-container-lowest border border-outline-variant rounded-xl overflow-hidden shadow-sm">
+<div class="overflow-x-auto custom-scrollbar">
+<table class="w-full text-left border-collapse">
+<thead>
+<tr class="bg-surface-container-low border-b border-outline-variant">
+<th class="px-lg py-md font-label-md text-label-md text-on-surface-variant uppercase tracking-wider">Nama Tamu</th>
+<th class="px-lg py-md font-label-md text-label-md text-on-surface-variant uppercase tracking-wider">ID Tiket</th>
+<th class="px-lg py-md font-label-md text-label-md text-on-surface-variant uppercase tracking-wider">Gate</th>
+<th class="px-lg py-md font-label-md text-label-md text-on-surface-variant uppercase tracking-wider">Tipe Tiket</th>
+<th class="px-lg py-md font-label-md text-label-md text-on-surface-variant uppercase tracking-wider">Waktu Scan</th>
+<th class="px-lg py-md font-label-md text-label-md text-on-surface-variant uppercase tracking-wider">Status</th>
+<th class="px-lg py-md font-label-md text-label-md text-on-surface-variant uppercase tracking-wider">Aksi</th>
+</tr>
+</thead>
+<tbody class="divide-y divide-outline-variant">
+<!-- Row 1 -->
+<tr class="hover:bg-surface-container-lowest transition-colors group">
+<td class="px-lg py-md">
+<div class="flex items-center gap-sm">
+<div class="w-8 h-8 rounded-full bg-secondary-container flex items-center justify-center text-on-secondary-container font-bold text-[12px]">JS</div>
+<span class="font-body-md text-body-md font-medium">John Smith</span>
+</div>
+</td>
+<td class="px-lg py-md font-mono-sm text-mono-sm text-on-surface-variant">#TKT-9283-XPL</td>
+<td class="px-lg py-md font-body-md text-body-md">Main Entrance 01</td>
+<td class="px-lg py-md">
+<span class="bg-surface-container px-sm py-1 rounded font-label-sm text-label-sm text-on-surface">VIP PASS</span>
+</td>
+<td class="px-lg py-md font-body-md text-body-md">Oct 24, 2023 • 14:22:10</td>
+<td class="px-lg py-md">
+<div class="flex items-center gap-xs text-on-tertiary-container font-label-md text-label-md">
+<span class="w-2 h-2 rounded-full bg-on-tertiary-container"></span>
+                                    Valid
+                                </div>
+</td>
+<td class="px-lg py-md text-center">
+<button class="material-symbols-outlined text-outline hover:text-secondary" data-icon="more_vert">more_vert</button>
+</td>
+</tr>
+<!-- Row 2 -->
+<tr class="hover:bg-surface-container-lowest transition-colors">
+<td class="px-lg py-md">
+<div class="flex items-center gap-sm">
+<div class="w-8 h-8 rounded-full bg-tertiary-container flex items-center justify-center text-tertiary-fixed font-bold text-[12px]">AW</div>
+<span class="font-body-md text-body-md font-medium">Alice Wong</span>
+</div>
+</td>
+<td class="px-lg py-md font-mono-sm text-mono-sm text-on-surface-variant">#TKT-1120-PRM</td>
+<td class="px-lg py-md font-body-md text-body-md">VIP Gate 02</td>
+<td class="px-lg py-md">
+<span class="bg-surface-container px-sm py-1 rounded font-label-sm text-label-sm text-on-surface">PREMIUM</span>
+</td>
+<td class="px-lg py-md font-body-md text-body-md">Oct 24, 2023 • 14:21:45</td>
+<td class="px-lg py-md">
+<div class="flex items-center gap-xs text-error font-label-md text-label-md">
+<span class="w-2 h-2 rounded-full bg-error"></span>
+                                    Invalid
+                                </div>
+</td>
+<td class="px-lg py-md text-center">
+<button class="material-symbols-outlined text-outline hover:text-secondary" data-icon="more_vert">more_vert</button>
+</td>
+</tr>
+<!-- Row 3 -->
+<tr class="hover:bg-surface-container-lowest transition-colors">
+<td class="px-lg py-md">
+<div class="flex items-center gap-sm">
+<div class="w-8 h-8 rounded-full bg-outline-variant flex items-center justify-center text-on-surface font-bold text-[12px]">MB</div>
+<span class="font-body-md text-body-md font-medium">Michael Brown</span>
+</div>
+</td>
+<td class="px-lg py-md font-mono-sm text-mono-sm text-on-surface-variant">#TKT-5561-GEN</td>
+<td class="px-lg py-md font-body-md text-body-md">Main Entrance 01</td>
+<td class="px-lg py-md">
+<span class="bg-surface-container px-sm py-1 rounded font-label-sm text-label-sm text-on-surface">GENERAL</span>
+</td>
+<td class="px-lg py-md font-body-md text-body-md">Oct 24, 2023 • 14:20:12</td>
+<td class="px-lg py-md">
+<div class="flex items-center gap-xs text-outline font-label-md text-label-md">
+<span class="w-2 h-2 rounded-full bg-outline"></span>
+                                    Used
+                                </div>
+</td>
+<td class="px-lg py-md text-center">
+<button class="material-symbols-outlined text-outline hover:text-secondary" data-icon="more_vert">more_vert</button>
+</td>
+</tr>
+<!-- Row 4 -->
+<tr class="hover:bg-surface-container-lowest transition-colors">
+<td class="px-lg py-md">
+<div class="flex items-center gap-sm">
+<div class="w-8 h-8 rounded-full bg-secondary-container flex items-center justify-center text-on-secondary-container font-bold text-[12px]">SL</div>
+<span class="font-body-md text-body-md font-medium">Sarah Lee</span>
+</div>
+</td>
+<td class="px-lg py-md font-mono-sm text-mono-sm text-on-surface-variant">#TKT-8842-XPL</td>
+<td class="px-lg py-md font-body-md text-body-md">Main Entrance 01</td>
+<td class="px-lg py-md">
+<span class="bg-surface-container px-sm py-1 rounded font-label-sm text-label-sm text-on-surface">VIP PASS</span>
+</td>
+<td class="px-lg py-md font-body-md text-body-md">Oct 24, 2023 • 14:19:55</td>
+<td class="px-lg py-md">
+<div class="flex items-center gap-xs text-on-tertiary-container font-label-md text-label-md">
+<span class="w-2 h-2 rounded-full bg-on-tertiary-container"></span>
+                                    Valid
+                                </div>
+</td>
+<td class="px-lg py-md text-center">
+<button class="material-symbols-outlined text-outline hover:text-secondary" data-icon="more_vert">more_vert</button>
+</td>
+</tr>
+<!-- Row 5 -->
+<tr class="hover:bg-surface-container-lowest transition-colors">
+<td class="px-lg py-md">
+<div class="flex items-center gap-sm">
+<div class="w-8 h-8 rounded-full bg-tertiary-container flex items-center justify-center text-tertiary-fixed font-bold text-[12px]">DR</div>
+<span class="font-body-md text-body-md font-medium">David Ross</span>
+</div>
+</td>
+<td class="px-lg py-md font-mono-sm text-mono-sm text-on-surface-variant">#TKT-3349-PRM</td>
+<td class="px-lg py-md font-body-md text-body-md">VIP Gate 02</td>
+<td class="px-lg py-md">
+<span class="bg-surface-container px-sm py-1 rounded font-label-sm text-label-sm text-on-surface">PREMIUM</span>
+</td>
+<td class="px-lg py-md font-body-md text-body-md">Oct 24, 2023 • 14:18:30</td>
+<td class="px-lg py-md">
+<div class="flex items-center gap-xs text-on-tertiary-container font-label-md text-label-md">
+<span class="w-2 h-2 rounded-full bg-on-tertiary-container"></span>
+                                    Valid
+                                </div>
+</td>
+<td class="px-lg py-md text-center">
+<button class="material-symbols-outlined text-outline hover:text-secondary" data-icon="more_vert">more_vert</button>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<!-- PAGINATION -->
+<div class="px-lg py-md bg-surface-container-low flex flex-col sm:flex-row items-center justify-between gap-md border-t border-outline-variant">
+<span class="font-label-md text-label-md text-on-surface-variant">Showing 1 to 10 of 2,482 entries</span>
+<div class="flex items-center gap-xs">
+<button class="w-10 h-10 flex items-center justify-center rounded-lg border border-outline hover:bg-surface-container-lowest transition-colors disabled:opacity-30 disabled:cursor-not-allowed" disabled="">
+<span class="material-symbols-outlined" data-icon="chevron_left">chevron_left</span>
+</button>
+<button class="w-10 h-10 flex items-center justify-center rounded-lg bg-secondary text-on-secondary font-bold font-label-md text-label-md">1</button>
+<button class="w-10 h-10 flex items-center justify-center rounded-lg border border-outline hover:bg-surface-container-lowest transition-colors font-label-md text-label-md">2</button>
+<button class="w-10 h-10 flex items-center justify-center rounded-lg border border-outline hover:bg-surface-container-lowest transition-colors font-label-md text-label-md">3</button>
+<span class="px-xs text-outline">...</span>
+<button class="w-10 h-10 flex items-center justify-center rounded-lg border border-outline hover:bg-surface-container-lowest transition-colors font-label-md text-label-md">249</button>
+<button class="w-10 h-10 flex items-center justify-center rounded-lg border border-outline hover:bg-surface-container-lowest transition-colors">
+<span class="material-symbols-outlined" data-icon="chevron_right">chevron_right</span>
+</button>
+</div>
+</div>
+</div>
+<!-- System Stats Quick View (Asymmetric Bento Card) -->
+<div class="mt-xl grid grid-cols-1 md:grid-cols-4 gap-lg">
+<div class="md:col-span-2 bg-primary-container p-lg rounded-xl flex flex-col justify-between relative overflow-hidden group">
+<div class="relative z-10">
+<p class="font-label-md text-label-md text-on-primary-container uppercase tracking-widest">Total Scans Today</p>
+<h4 class="font-display-lg text-display-lg text-white mt-xs">12,840</h4>
+</div>
+<div class="mt-lg flex items-center gap-md relative z-10">
+<div class="flex items-center gap-xs text-on-tertiary-fixed-variant font-label-md text-label-md bg-tertiary-fixed px-sm py-1 rounded-full">
+<span class="material-symbols-outlined text-[16px]" data-icon="trending_up">trending_up</span>
+                        +8.2%
+                    </div>
+<span class="text-on-primary-container font-label-sm text-label-sm">vs. yesterday at this time</span>
+</div>
+<!-- Abstract Pattern Decoration -->
+<div class="absolute right-[-20px] top-[-20px] w-48 h-48 bg-secondary-container opacity-20 blur-3xl rounded-full group-hover:scale-125 transition-transform duration-700"></div>
+</div>
+<div class="bg-surface-container-highest p-lg rounded-xl border border-outline-variant">
+<div class="flex items-center gap-sm mb-md">
+<span class="material-symbols-outlined text-secondary" data-icon="check_circle" style="font-variation-settings: 'FILL' 1;">check_circle</span>
+<p class="font-label-md text-label-md text-on-surface">Valid Scans</p>
+</div>
+<p class="font-headline-md text-headline-md text-on-surface">94.8%</p>
+<div class="w-full bg-surface-container mt-sm h-1.5 rounded-full">
+<div class="bg-secondary h-full rounded-full" style="width: 94.8%"></div>
+</div>
+</div>
+<div class="bg-error-container p-lg rounded-xl border border-error/20">
+<div class="flex items-center gap-sm mb-md">
+<span class="material-symbols-outlined text-error" data-icon="report" style="font-variation-settings: 'FILL' 1;">report</span>
+<p class="font-label-md text-label-md text-on-error-container">Invalid/Denied</p>
+</div>
+<p class="font-headline-md text-headline-md text-on-error-container">2.4%</p>
+<div class="w-full bg-white/50 mt-sm h-1.5 rounded-full">
+<div class="bg-error h-full rounded-full" style="width: 2.4%"></div>
+</div>
+</div>
+</div>
+</main>
+<!-- Micro-interaction: Table Row Highlight and Search focus -->
+<script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // Add subtle ripple effect to buttons
+            const buttons = document.querySelectorAll('button');
+            buttons.forEach(btn => {
+                btn.addEventListener('mousedown', function(e) {
+                    let ripple = document.createElement('span');
+                    ripple.classList.add('ripple');
+                    this.appendChild(ripple);
+                    setTimeout(() => ripple.remove(), 600);
+                });
+            });
+
+            // Simulate searching
+            const searchInput = document.querySelector('input[type="text"]');
+            searchInput.addEventListener('input', (e) => {
+                const query = e.target.value.toLowerCase();
+                const rows = document.querySelectorAll('tbody tr');
+                
+                rows.forEach(row => {
+                    const text = row.textContent.toLowerCase();
+                    row.style.display = text.includes(query) ? '' : 'none';
+                });
+            });
+        });
+    </script>
+</body></html>

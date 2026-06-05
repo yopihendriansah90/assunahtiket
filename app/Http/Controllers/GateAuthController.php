@@ -433,7 +433,7 @@ class GateAuthController extends Controller
         return collect($scans)
             ->map(function (ScanAttempt $scan): array {
                 return [
-                    'time' => $scan->scanned_at?->format('H:i:s') ?? '-',
+                    'time' => $scan->scanned_at?->timezone('Asia/Jakarta')->format('H:i:s \W\I\B') ?? '-',
                     'student' => $scan->student_name ?: 'Peserta tidak dikenal',
                     'ticket_code' => $scan->ticket_code ?: ($scan->query ?: '-'),
                     'status' => $this->mapScanStatusLabel($scan->status, $scan->scan_method),
@@ -504,7 +504,7 @@ class GateAuthController extends Controller
                 'event_name' => $ticket->event?->name ?? '-',
             ] : null,
             'checkin' => $checkin ? [
-                'checked_in_at' => $checkin->checked_in_at?->format('d/m/Y H:i:s'),
+                'checked_in_at' => $checkin->checked_in_at?->timezone('Asia/Jakarta')->format('d/m/Y H:i:s \W\I\B'),
                 'scan_method' => $checkin->scan_method,
             ] : null,
         ];

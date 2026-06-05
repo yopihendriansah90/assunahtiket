@@ -251,6 +251,62 @@
             color: var(--muted);
             padding-left: 4px;
         }
+        .scanner-setting-toggle {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 10px 12px;
+            border: 1px solid var(--line);
+            border-radius: 16px;
+            background: #fff;
+            cursor: pointer;
+        }
+        .scanner-setting-toggle input {
+            position: absolute;
+            opacity: 0;
+            pointer-events: none;
+        }
+        .scanner-setting-toggle-indicator {
+            position: relative;
+            flex: 0 0 46px;
+            width: 46px;
+            height: 28px;
+            border-radius: 999px;
+            background: #cbd5e1;
+            transition: background 0.18s ease;
+        }
+        .scanner-setting-toggle-indicator::after {
+            content: "";
+            position: absolute;
+            top: 3px;
+            left: 3px;
+            width: 22px;
+            height: 22px;
+            border-radius: 999px;
+            background: #fff;
+            box-shadow: 0 1px 3px rgba(15, 23, 42, 0.2);
+            transition: transform 0.18s ease;
+        }
+        .scanner-setting-toggle input:checked + .scanner-setting-toggle-indicator {
+            background: #16a34a;
+        }
+        .scanner-setting-toggle input:checked + .scanner-setting-toggle-indicator::after {
+            transform: translateX(18px);
+        }
+        .scanner-setting-toggle-copy {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+        .scanner-setting-toggle-copy strong {
+            font-size: 13px;
+            color: #0f172a;
+        }
+        .scanner-setting-toggle-copy small {
+            font-size: 12px;
+            color: var(--muted);
+            line-height: 1.45;
+        }
         .mode-option {
             border: 0;
             border-radius: 999px;
@@ -419,6 +475,52 @@
             grid-template-columns: repeat(2, minmax(0, 1fr));
             gap: 12px;
             margin-top: 12px;
+        }
+        .scanner-readiness-indicator {
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+            margin-top: 14px;
+            padding: 12px 14px;
+            border: 1px solid #dbeafe;
+            border-radius: 16px;
+            background: #eff6ff;
+        }
+        .scanner-readiness-indicator.is-waiting {
+            border-color: #fde68a;
+            background: #fffbeb;
+        }
+        .scanner-readiness-indicator.is-paused {
+            border-color: #fecaca;
+            background: #fef2f2;
+        }
+        .scanner-readiness-dot {
+            width: 12px;
+            height: 12px;
+            flex: 0 0 12px;
+            margin-top: 4px;
+            border-radius: 999px;
+            background: #2563eb;
+        }
+        .scanner-readiness-indicator.is-waiting .scanner-readiness-dot {
+            background: #d97706;
+        }
+        .scanner-readiness-indicator.is-paused .scanner-readiness-dot {
+            background: #dc2626;
+        }
+        .scanner-readiness-copy {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+        .scanner-readiness-copy strong {
+            font-size: 14px;
+            color: #0f172a;
+        }
+        .scanner-readiness-copy small {
+            font-size: 12px;
+            line-height: 1.45;
+            color: #475569;
         }
         .button-soft {
             background: #eef2ff;
@@ -626,6 +728,7 @@
             align-items: center;
             justify-content: center;
             padding: 20px;
+            overflow-y: auto;
             background: rgba(15, 23, 42, 0.52);
             z-index: 9999;
             opacity: 0;
@@ -639,6 +742,7 @@
         }
         .scan-modal-card {
             width: min(100%, 420px);
+            max-height: calc(100dvh - 40px);
             border-radius: 24px;
             background: #fff;
             box-shadow: 0 24px 80px rgba(15, 23, 42, 0.24);
@@ -686,6 +790,8 @@
         }
         .scan-modal-body {
             padding: 18px 18px 20px;
+            max-height: calc(100dvh - 220px);
+            overflow-y: auto;
         }
         .scan-modal-message {
             margin: 0;
@@ -733,19 +839,26 @@
             color: var(--muted);
             text-align: center;
         }
+        .scan-modal-actions {
+            display: flex;
+            justify-content: center;
+            margin-top: 16px;
+        }
+        .scan-modal-actions .button {
+            min-width: 120px;
+        }
         @media (min-width: 640px) {
             .scan-modal-card {
                 width: min(100%, 560px);
+                max-height: calc(100dvh - 48px);
             }
             .scan-modal-body {
                 padding: 20px 24px 24px;
+                max-height: calc(100dvh - 240px);
             }
             .scan-modal-details {
                 grid-template-columns: repeat(2, minmax(0, 1fr));
                 gap: 12px;
-            }
-            .scan-modal-detail.scan-modal-detail-wide {
-                grid-column: span 2;
             }
         }
         .form-hint {

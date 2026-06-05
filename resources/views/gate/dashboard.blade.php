@@ -113,6 +113,14 @@
                                     </button>
                                 </div>
                             </div>
+                            <label class="scanner-setting-toggle" for="gate-auto-close-toggle">
+                                <input id="gate-auto-close-toggle" type="checkbox" checked>
+                                <span class="scanner-setting-toggle-indicator"></span>
+                                <span class="scanner-setting-toggle-copy">
+                                    <strong>Auto-close Notifikasi</strong>
+                                    <small id="gate-auto-close-help">Aktif: modal tertutup otomatis 5 detik, scanner menunggu 5 detik.</small>
+                                </span>
+                            </label>
                         </div>
 
                         <div class="search-strip-main">
@@ -172,6 +180,13 @@
                             <div class="camera-actions">
                                 <button type="button" class="button button-primary" id="camera-toggle-button">Hentikan Kamera</button>
                                 <button type="button" class="button button-ghost" id="camera-switch-button">Ganti Kamera</button>
+                            </div>
+                            <div id="scanner-readiness-indicator" class="scanner-readiness-indicator is-ready">
+                                <span id="scanner-readiness-dot" class="scanner-readiness-dot"></span>
+                                <div class="scanner-readiness-copy">
+                                    <strong id="scanner-readiness-title">Scanner siap</strong>
+                                    <small id="scanner-readiness-message">Scanner siap menerima QR atau kode tiket berikutnya.</small>
+                                </div>
                             </div>
                         </div>
                     </section>
@@ -396,28 +411,15 @@
                         <span id="scan-feedback-mother-name" class="scan-modal-detail-value">-</span>
                     </div>
                     <div class="scan-modal-detail">
-                        <span class="scan-modal-detail-label">WhatsApp Ibu</span>
-                        <span id="scan-feedback-mother-whatsapp" class="scan-modal-detail-value">-</span>
-                    </div>
-                    <div class="scan-modal-detail">
                         <span class="scan-modal-detail-label">Kode Tiket</span>
                         <span id="scan-feedback-ticket-code" class="scan-modal-detail-value">-</span>
-                    </div>
-                    <div class="scan-modal-detail">
-                        <span class="scan-modal-detail-label">Waktu Scan</span>
-                        <span id="scan-feedback-checked-in-at" class="scan-modal-detail-value">-</span>
-                    </div>
-                    <div class="scan-modal-detail scan-modal-detail-wide">
-                        <span class="scan-modal-detail-label">Acara</span>
-                        <span id="scan-feedback-event-name" class="scan-modal-detail-value">-</span>
-                    </div>
-                    <div class="scan-modal-detail scan-modal-detail-wide">
-                        <span class="scan-modal-detail-label">Input Scan</span>
-                        <span id="scan-feedback-query" class="scan-modal-detail-value">-</span>
                     </div>
                 </div>
                 <div id="scan-feedback-meta" class="scan-modal-meta">
                     Notifikasi ini akan tertutup otomatis dalam 5 detik.
+                </div>
+                <div class="scan-modal-actions">
+                    <button type="button" id="scan-feedback-ok-button" class="button button-primary">OK</button>
                 </div>
             </div>
         </div>
@@ -445,11 +447,13 @@
                 const scanFeedbackStudentName = document.getElementById('scan-feedback-student-name');
                 const scanFeedbackStudentClass = document.getElementById('scan-feedback-student-class');
                 const scanFeedbackMotherName = document.getElementById('scan-feedback-mother-name');
-                const scanFeedbackMotherWhatsapp = document.getElementById('scan-feedback-mother-whatsapp');
                 const scanFeedbackTicketCode = document.getElementById('scan-feedback-ticket-code');
-                const scanFeedbackCheckedInAt = document.getElementById('scan-feedback-checked-in-at');
-                const scanFeedbackEventName = document.getElementById('scan-feedback-event-name');
-                const scanFeedbackQuery = document.getElementById('scan-feedback-query');
+                const scanFeedbackOkButton = document.getElementById('scan-feedback-ok-button');
+                const autoCloseToggle = document.getElementById('gate-auto-close-toggle');
+                const autoCloseHelp = document.getElementById('gate-auto-close-help');
+                const scannerReadinessIndicator = document.getElementById('scanner-readiness-indicator');
+                const scannerReadinessTitle = document.getElementById('scanner-readiness-title');
+                const scannerReadinessMessage = document.getElementById('scanner-readiness-message');
                 const enterButton = document.getElementById('gate-scan-mode-enter');
                 const autoButton = document.getElementById('gate-scan-mode-auto');
                 const cameraReader = document.getElementById('camera-reader');
@@ -463,9 +467,11 @@
                 const cameraPlaceholderTitle = document.getElementById('camera-placeholder-title');
                 const cameraPlaceholderMessage = document.getElementById('camera-placeholder-message');
                 const modeKey = 'gate.scan.mode';
+                const autoCloseKey = 'gate.scan.autoClose';
                 const recentScansUrl = '{{ route('gate.recent-scans', ['gate' => $activeGate?->id]) }}';
                 let submitTimer = null;
                 let mode = localStorage.getItem(modeKey) || 'enter';
+                let autoCloseEnabled = localStorage.getItem(autoCloseKey) !== '0';
                 let html5QrCode = null;
                 let cameraDevices = [];
                 let activeCameraIndex = 0;
@@ -480,6 +486,14 @@
                     return;
                 }
 
+                const isFeedbackModalVisible = () => {
+                    return scanFeedbackModal?.classList.contains('is-visible') ?? false;
+                };
+
+                const isScanBlocked = () => {
+                    return isSubmittingScan || isFeedbackModalVisible() || Date.now() < scanCooldownUntil;
+                };
+
                 const syncMode = () => {
                     const isAuto = mode === 'auto';
 
@@ -489,8 +503,22 @@
                     localStorage.setItem(modeKey, mode);
                 };
 
+                const syncAutoCloseSetting = () => {
+                    if (autoCloseToggle) {
+                        autoCloseToggle.checked = autoCloseEnabled;
+                    }
+
+                    if (autoCloseHelp) {
+                        autoCloseHelp.textContent = autoCloseEnabled
+                            ? 'Aktif: modal tertutup otomatis 5 detik, scanner menunggu 5 detik.'
+                            : 'Nonaktif: tutup modal dengan tombol OK, scanner menunggu sampai modal ditutup.';
+                    }
+
+                    localStorage.setItem(autoCloseKey, autoCloseEnabled ? '1' : '0');
+                };
+
                 const submitScan = () => {
-                    if (input.value.trim() === '' || isSubmittingScan || Date.now() < scanCooldownUntil) {
+                    if (input.value.trim() === '' || isScanBlocked()) {
                         return;
                     }
 
@@ -645,7 +673,7 @@
                                 disableFlip: false,
                             },
                             (decodedText) => {
-                                if (isSubmittingScan || input.value.trim() !== '' || Date.now() < scanCooldownUntil) {
+                                if (isScanBlocked() || input.value.trim() !== '') {
                                     return;
                                 }
 
@@ -718,6 +746,32 @@
                     }
                 };
 
+                const setScannerReadiness = (state, message = null) => {
+                    if (! scannerReadinessIndicator || ! scannerReadinessTitle || ! scannerReadinessMessage) {
+                        return;
+                    }
+
+                    scannerReadinessIndicator.classList.remove('is-ready', 'is-waiting', 'is-paused');
+
+                    if (state === 'waiting') {
+                        scannerReadinessIndicator.classList.add('is-waiting');
+                        scannerReadinessTitle.textContent = 'Scanner menunggu';
+                        scannerReadinessMessage.textContent = message || 'Tunggu hingga jeda scan selesai sebelum memindai tiket berikutnya.';
+                        return;
+                    }
+
+                    if (state === 'paused') {
+                        scannerReadinessIndicator.classList.add('is-paused');
+                        scannerReadinessTitle.textContent = 'Scanner ditahan';
+                        scannerReadinessMessage.textContent = message || 'Tutup notifikasi dengan tombol OK untuk melanjutkan proses scan.';
+                        return;
+                    }
+
+                    scannerReadinessIndicator.classList.add('is-ready');
+                    scannerReadinessTitle.textContent = 'Scanner siap';
+                    scannerReadinessMessage.textContent = message || 'Scanner siap menerima QR atau kode tiket berikutnya.';
+                };
+
                 const hideFeedbackModal = () => {
                     if (! scanFeedbackModal) {
                         return;
@@ -727,6 +781,12 @@
                     clearInterval(feedbackModalCountdownTimer);
                     scanFeedbackModal.classList.remove('is-visible');
                     scanFeedbackModal.setAttribute('aria-hidden', 'true');
+                    if (! autoCloseEnabled) {
+                        scanCooldownUntil = 0;
+                        setScannerReadiness('ready');
+                    }
+                    input.focus();
+                    input.select();
                 };
 
                 const showFeedbackModal = (status, message, result = {}) => {
@@ -765,20 +825,23 @@
                     setFeedbackDetail(scanFeedbackStudentName, result?.ticket?.name);
                     setFeedbackDetail(scanFeedbackStudentClass, result?.ticket?.class);
                     setFeedbackDetail(scanFeedbackMotherName, result?.ticket?.mother_name);
-                    setFeedbackDetail(scanFeedbackMotherWhatsapp, result?.ticket?.mother_whatsapp);
                     setFeedbackDetail(scanFeedbackTicketCode, result?.ticket?.ticket_code);
-                    setFeedbackDetail(scanFeedbackCheckedInAt, result?.checkin?.checked_in_at);
-                    setFeedbackDetail(scanFeedbackEventName, result?.ticket?.event_name);
-                    setFeedbackDetail(scanFeedbackQuery, result?.query);
 
                     let countdown = 5;
 
                     if (scanFeedbackMeta) {
-                        scanFeedbackMeta.textContent = `Notifikasi ini akan tertutup otomatis dalam ${countdown} detik.`;
+                        scanFeedbackMeta.textContent = autoCloseEnabled
+                            ? `Notifikasi ini akan tertutup otomatis dalam ${countdown} detik.`
+                            : 'Scanner ditahan sampai Anda menutup notifikasi ini dengan tombol OK.';
                     }
 
                     scanFeedbackModal.classList.add('is-visible');
                     scanFeedbackModal.setAttribute('aria-hidden', 'false');
+
+                    if (! autoCloseEnabled) {
+                        setScannerReadiness('paused');
+                        return;
+                    }
 
                     feedbackModalCountdownTimer = window.setInterval(() => {
                         countdown -= 1;
@@ -791,10 +854,15 @@
                         if (scanFeedbackMeta) {
                             scanFeedbackMeta.textContent = `Notifikasi ini akan tertutup otomatis dalam ${countdown} detik.`;
                         }
+
+                        if (countdown > 0) {
+                            setScannerReadiness('waiting', `Scanner siap lagi dalam ${countdown} detik.`);
+                        }
                     }, 1000);
 
                     feedbackModalTimer = window.setTimeout(() => {
                         hideFeedbackModal();
+                        setScannerReadiness('ready');
                     }, 5000);
                 };
 
@@ -879,11 +947,15 @@
                         }
                     }
 
-                    scanCooldownUntil = Date.now() + 5000;
+                    scanCooldownUntil = autoCloseEnabled ? Date.now() + 5000 : 0;
+                    setScannerReadiness(
+                        autoCloseEnabled ? 'waiting' : 'paused',
+                        autoCloseEnabled
+                            ? 'Scanner siap lagi dalam 5 detik.'
+                            : 'Tutup notifikasi dengan tombol OK untuk melanjutkan proses scan.',
+                    );
                     showFeedbackModal(status, result.message || null, result);
                     input.value = '';
-                    input.focus();
-                    input.select();
                 };
 
                 enterButton?.addEventListener('click', () => {
@@ -954,8 +1026,14 @@
                 });
 
                 syncMode();
+                syncAutoCloseSetting();
+                setScannerReadiness('ready');
                 input.focus();
                 input.select();
+                autoCloseToggle?.addEventListener('change', (event) => {
+                    autoCloseEnabled = Boolean(event.currentTarget?.checked);
+                    syncAutoCloseSetting();
+                });
                 cameraToggleButton?.addEventListener('click', () => {
                     toggleCamera();
                 });
@@ -965,7 +1043,7 @@
                 window.addEventListener('beforeunload', () => {
                     stopCameraStream();
                 });
-                scanFeedbackModal?.addEventListener('click', hideFeedbackModal);
+                scanFeedbackOkButton?.addEventListener('click', hideFeedbackModal);
                 startCameraStream();
 
                 @if ($initialScanPayload)

@@ -71,10 +71,12 @@
                     </span>
                     <span>Scanner</span>
                 </a>
-                <a href="{{ route('gate.history', request()->filled('gate') ? ['gate' => request()->integer('gate')] : []) }}" class="gate-desktop-sidebar-link">
-                    <span class="gate-desktop-sidebar-symbol" aria-hidden="true">↺</span>
-                    <span>Riwayat</span>
-                </a>
+                @if ($isSuperAdmin)
+                    <a href="{{ route('gate.history', request()->filled('gate') ? ['gate' => request()->integer('gate')] : []) }}" class="gate-desktop-sidebar-link">
+                        <span class="gate-desktop-sidebar-symbol" aria-hidden="true">↺</span>
+                        <span>Riwayat</span>
+                    </a>
+                @endif
             </nav>
             <div class="gate-desktop-sidebar-footer">
                 <form method="POST" action="{{ route('gate.logout') }}">
@@ -249,7 +251,9 @@
                             <div class="gate-mobile-empty-history">Belum ada riwayat scan.</div>
                         @endforelse
                     </div>
-                    <a href="{{ route('gate.history', ['gate' => $activeGate->id]) }}" class="button button-ghost gate-desktop-history-link">Lihat Semua Riwayat</a>
+                    @if ($isSuperAdmin)
+                        <a href="{{ route('gate.history', ['gate' => $activeGate->id]) }}" class="button button-ghost gate-desktop-history-link">Lihat Semua Riwayat</a>
+                    @endif
                 </section>
 
                 <div class="gate-mobile-hidden-state" aria-hidden="true">

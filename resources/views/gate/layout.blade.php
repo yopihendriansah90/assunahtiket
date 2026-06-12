@@ -2076,6 +2076,76 @@
                 display: none;
             }
         }
+        @media (min-width: 1024px) and (max-width: 1439px) {
+            .gate-desktop-shell {
+                grid-template-columns: 236px minmax(0, 1fr);
+            }
+            .gate-desktop-sidebar {
+                padding: 28px 16px 20px;
+                gap: 20px;
+            }
+            .gate-desktop-sidebar-title {
+                font-size: 22px;
+            }
+            .gate-desktop-gate-name {
+                font-size: 18px;
+            }
+            .gate-desktop-gate-event {
+                font-size: 13px;
+            }
+            .gate-desktop-sidebar-link,
+            .gate-desktop-logout-button {
+                min-height: 48px;
+                padding: 0 14px;
+                font-size: 16px;
+                gap: 12px;
+            }
+            .gate-mobile-topbar {
+                padding: 20px 24px;
+            }
+            .gate-desktop-topbar-actions {
+                flex-wrap: wrap;
+                justify-content: flex-end;
+                gap: 12px;
+            }
+            .gate-mobile-main.gate-desktop-main {
+                grid-template-columns: minmax(0, 1fr);
+                grid-template-areas:
+                    "camera"
+                    "controls"
+                    "recent";
+                gap: 20px;
+                padding: 24px;
+            }
+            .gate-desktop-controls {
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+                gap: 18px;
+            }
+            .gate-desktop-recent-panel {
+                min-height: auto;
+            }
+            .gate-desktop-panel {
+                padding: 20px;
+            }
+            .gate-mobile-camera-frame {
+                min-height: 380px;
+                aspect-ratio: 16 / 9;
+            }
+            .gate-mobile-search-input {
+                font-size: 16px;
+            }
+            .gate-mobile-search-submit,
+            .mode-toggle {
+                min-height: 52px;
+            }
+            .gate-mobile-search-submit {
+                min-width: 92px;
+            }
+            .gate-mobile-chip-list {
+                flex-wrap: wrap;
+                overflow: visible;
+            }
+        }
         @media (min-width: 640px) {
             .gate-mobile-shell:not(.gate-desktop-shell) {
                 max-width: 720px;

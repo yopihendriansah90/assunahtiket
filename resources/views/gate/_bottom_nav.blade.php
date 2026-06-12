@@ -11,7 +11,7 @@
         </span>
         <span class="gate-bottom-nav-label">Scanner</span>
     </a>
-    @if ($user?->hasRole('super_admin') ?? false)
+    @if ($user?->canAccessGateDashboard() ?? false)
         <a href="{{ route('gate.history', request()->filled('gate') ? ['gate' => request()->integer('gate')] : []) }}" class="gate-bottom-nav-item {{ $activeTab === 'history' ? 'is-active' : '' }}">
             <span class="gate-bottom-nav-icon-wrap">
                 <span class="gate-bottom-nav-icon" aria-hidden="true">↺</span>

@@ -71,7 +71,7 @@
                     </span>
                     <span>Scanner</span>
                 </a>
-                @if ($isSuperAdmin)
+                @if ($user?->canAccessGateDashboard() ?? false)
                     <a href="{{ route('gate.history', request()->filled('gate') ? ['gate' => request()->integer('gate')] : []) }}" class="gate-desktop-sidebar-link">
                         <span class="gate-desktop-sidebar-symbol" aria-hidden="true">↺</span>
                         <span>Riwayat</span>

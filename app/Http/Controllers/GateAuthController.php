@@ -294,7 +294,7 @@ class GateAuthController extends Controller
     public function history(Request $request): View
     {
         $user = $request->user();
-        abort_unless($user?->hasRole('super_admin'), 403, 'Anda tidak memiliki akses ke riwayat scan.');
+        abort_unless($user?->canAccessGateDashboard(), 403, 'Anda tidak memiliki akses ke riwayat scan.');
 
         $gates = $this->accessibleGatesQuery($user)->get();
         $selectedGateId = $request->integer('gate');

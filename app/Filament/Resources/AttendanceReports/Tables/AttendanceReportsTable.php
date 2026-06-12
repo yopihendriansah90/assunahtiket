@@ -23,7 +23,7 @@ class AttendanceReportsTable
 
         return $table
             ->modifyQueryUsing(function (Builder $query) use ($user): Builder {
-                if (! $user || (! $user->hasRole('super_admin') && $user->can('ViewAny:Checkin') === false)) {
+                if (! $user || (! $user->hasRole('super_admin') && $user->can('ViewAny:ScanAttempt') === false)) {
                     return $query->whereRaw('1 = 0');
                 }
 

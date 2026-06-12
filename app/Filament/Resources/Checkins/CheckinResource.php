@@ -171,7 +171,7 @@ class CheckinResource extends Resource
         $query = parent::getEloquentQuery();
         $user = auth()->user();
 
-        if (! $user || $user->can('ViewAny:Checkin') === false) {
+        if (! $user || $user->can('ViewAny:ScanAttempt') === false) {
             return $query->whereRaw('1 = 0');
         }
 

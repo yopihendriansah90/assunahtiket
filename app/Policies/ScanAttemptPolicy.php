@@ -5,10 +5,10 @@ declare(strict_types=1);
 namespace App\Policies;
 
 use Illuminate\Foundation\Auth\User as AuthUser;
-use App\Models\Checkin;
+use App\Models\ScanAttempt;
 use Illuminate\Auth\Access\HandlesAuthorization;
 
-class CheckinPolicy
+class ScanAttemptPolicy
 {
     use HandlesAuthorization;
     
@@ -17,7 +17,7 @@ class CheckinPolicy
         return $authUser->can('ViewAny:ScanAttempt');
     }
 
-    public function view(AuthUser $authUser, Checkin $checkin): bool
+    public function view(AuthUser $authUser, ScanAttempt $scanAttempt): bool
     {
         return $authUser->can('View:ScanAttempt');
     }
@@ -27,12 +27,12 @@ class CheckinPolicy
         return $authUser->can('Create:ScanAttempt');
     }
 
-    public function update(AuthUser $authUser, Checkin $checkin): bool
+    public function update(AuthUser $authUser, ScanAttempt $scanAttempt): bool
     {
         return $authUser->can('Update:ScanAttempt');
     }
 
-    public function delete(AuthUser $authUser, Checkin $checkin): bool
+    public function delete(AuthUser $authUser, ScanAttempt $scanAttempt): bool
     {
         return $authUser->can('Delete:ScanAttempt');
     }
@@ -42,12 +42,12 @@ class CheckinPolicy
         return $authUser->can('DeleteAny:ScanAttempt');
     }
 
-    public function restore(AuthUser $authUser, Checkin $checkin): bool
+    public function restore(AuthUser $authUser, ScanAttempt $scanAttempt): bool
     {
         return $authUser->can('Restore:ScanAttempt');
     }
 
-    public function forceDelete(AuthUser $authUser, Checkin $checkin): bool
+    public function forceDelete(AuthUser $authUser, ScanAttempt $scanAttempt): bool
     {
         return $authUser->can('ForceDelete:ScanAttempt');
     }
@@ -62,7 +62,7 @@ class CheckinPolicy
         return $authUser->can('RestoreAny:ScanAttempt');
     }
 
-    public function replicate(AuthUser $authUser, Checkin $checkin): bool
+    public function replicate(AuthUser $authUser, ScanAttempt $scanAttempt): bool
     {
         return $authUser->can('Replicate:ScanAttempt');
     }

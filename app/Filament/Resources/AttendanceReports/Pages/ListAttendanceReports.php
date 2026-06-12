@@ -28,7 +28,7 @@ class ListAttendanceReports extends ListRecords
                 ->modalHeading('Download laporan kehadiran')
                 ->modalDescription('File Excel akan mengikuti filter laporan yang sedang aktif pada tabel ini.')
                 ->modalSubmitActionLabel('Unduh Excel')
-                ->visible(fn (): bool => auth()->user()?->can('ViewAny:Checkin') ?? false)
+                ->visible(fn (): bool => auth()->user()?->can('ViewAny:ScanAttempt') ?? false)
                 ->action(function () {
                     $records = $this->getFilteredSortedTableQuery()
                         ?->with([

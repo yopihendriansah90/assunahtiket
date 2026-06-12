@@ -21,7 +21,7 @@ class CheckinsTable
         return $table
             ->poll('5s')
             ->modifyQueryUsing(function (Builder $query) use ($user): Builder {
-                if (! $user || $user->can('ViewAny:Checkin') === false) {
+                if (! $user || $user->can('ViewAny:ScanAttempt') === false) {
                     return $query->whereRaw('1 = 0');
                 }
 
@@ -116,7 +116,7 @@ class CheckinsTable
             ->recordActions([
                 ViewAction::make()
                     ->label('Detail')
-                    ->visible(fn (): bool => auth()->user()?->can('View:Checkin') ?? false),
+                    ->visible(fn (): bool => auth()->user()?->can('View:ScanAttempt') ?? false),
                 EditAction::make()
                     ->label('Ubah')
                     ->visible(fn () => $isSuperAdmin),

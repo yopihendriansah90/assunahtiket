@@ -295,7 +295,11 @@
                 <p id="scan-feedback-message" class="scan-modal-message">
                     Tiket valid dan check-in berhasil diproses.
                 </p>
-                <div class="scan-modal-details">
+                <div
+                    id="scan-feedback-details"
+                    class="scan-modal-details"
+                    @if ($scanStatus && ! in_array($scanStatus, ['success', 'already_scanned'], true)) hidden @endif
+                >
                     <div class="scan-modal-detail">
                         <span class="scan-modal-detail-label">Nama Peserta</span>
                         <span id="scan-feedback-student-name" class="scan-modal-detail-value">-</span>
@@ -341,6 +345,7 @@
                 const scanFeedbackIcon = document.getElementById('scan-feedback-icon');
                 const scanFeedbackTitle = document.getElementById('scan-feedback-title');
                 const scanFeedbackMessage = document.getElementById('scan-feedback-message');
+                const scanFeedbackDetails = document.getElementById('scan-feedback-details');
                 const scanFeedbackMeta = document.getElementById('scan-feedback-meta');
                 const scanFeedbackStudentName = document.getElementById('scan-feedback-student-name');
                 const scanFeedbackStudentClass = document.getElementById('scan-feedback-student-class');
@@ -868,6 +873,9 @@
                     scanFeedbackIcon.textContent = variant.icon;
                     scanFeedbackTitle.textContent = variant.title;
                     scanFeedbackMessage.textContent = message || variant.meta;
+                    if (scanFeedbackDetails) {
+                        scanFeedbackDetails.hidden = status !== 'success' && status !== 'already_scanned';
+                    }
                     setFeedbackDetail(scanFeedbackStudentName, result?.ticket?.name);
                     setFeedbackDetail(scanFeedbackStudentClass, result?.ticket?.class);
                     setFeedbackDetail(scanFeedbackMotherName, result?.ticket?.mother_name);

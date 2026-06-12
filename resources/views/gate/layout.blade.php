@@ -1035,11 +1035,12 @@
             font-size: 13px;
             font-weight: 700;
             cursor: pointer;
+            transition: background-color 0.18s ease, color 0.18s ease, box-shadow 0.18s ease;
         }
         .mode-option.is-active {
-            background: var(--surface);
-            color: var(--text);
-            box-shadow: 0 1px 2px rgba(15, 23, 42, 0.08);
+            background: var(--primary);
+            color: #111827;
+            box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--primary-dark) 72%, transparent);
         }
         .search-strip-label {
             display: flex;

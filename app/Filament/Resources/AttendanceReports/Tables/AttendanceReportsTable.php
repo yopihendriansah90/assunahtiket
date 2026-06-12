@@ -4,6 +4,11 @@ namespace App\Filament\Resources\AttendanceReports\Tables;
 
 use App\Models\Checkin;
 use App\Models\Student;
+use App\Services\Reports\AttendanceReportMaintenanceService;
+use Filament\Actions\Action;
+use Filament\Actions\BulkAction;
+use Filament\Actions\BulkActionGroup;
+use Filament\Notifications\Notification;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
@@ -14,10 +19,11 @@ class AttendanceReportsTable
     public static function configure(Table $table): Table
     {
         $user = auth()->user();
+        $canManageAttendance = $user?->hasRole('super_admin') ?? false;
 
         return $table
             ->modifyQueryUsing(function (Builder $query) use ($user): Builder {
-                if (! $user || $user->can('ViewAny:Checkin') === false) {
+                if (! $user || (! $user->hasRole('super_admin') && $user->can('ViewAny:Checkin') === false)) {
                     return $query->whereRaw('1 = 0');
                 }
 
@@ -119,6 +125,63 @@ class AttendanceReportsTable
                             default => $query,
                         };
                     }),
+            ])
+            ->recordActions([
+                Action::make('resetCheckin')
+                    ->label('Reset 1 Peserta')
+                    ->icon('heroicon-o-arrow-path')
+                    ->color('danger')
+                    ->requiresConfirmation()
+                    ->modalHeading(fn (Student $record): string => 'Reset kehadiran untuk ' . $record->name)
+                    ->modalDescription(function (Student $record): string {
+                        $checkinCount = $record->ticket?->checkins()->count() ?? 0;
+
+                        return $checkinCount > 0
+                            ? 'Tindakan ini akan menghapus ' . number_format($checkinCount) . ' data check-in milik peserta ini dari laporan.'
+                            : 'Peserta ini belum punya data check-in yang bisa dihapus.';
+                    })
+                    ->visible(fn (Student $record): bool => $canManageAttendance && $record->ticket?->checkins()->exists() === true)
+                    ->action(function (Student $record): void {
+                        $deleted = app(AttendanceReportMaintenanceService::class)->resetAttendanceForStudent($record);
+
+                        Notification::make()
+                            ->title($deleted > 0 ? 'Kehadiran peserta berhasil direset' : 'Tidak ada data kehadiran untuk peserta ini')
+                            ->success()
+                            ->send();
+                    }),
+            ])
+            ->toolbarActions([
+                BulkActionGroup::make([
+                    BulkAction::make('resetSelectedAttendance')
+                        ->label('Reset Banyak Peserta')
+                        ->icon('heroicon-o-arrow-path')
+                        ->color('danger')
+                        ->requiresConfirmation()
+                        ->modalHeading(function (BulkAction $action): string {
+                            $count = $action->getSelectedRecords()->count();
+
+                            return 'Reset kehadiran ' . number_format($count) . ' peserta';
+                        })
+                        ->modalDescription(function (BulkAction $action): string {
+                            $count = $action->getSelectedRecords()->count();
+
+                            return $count > 0
+                                ? 'Tindakan ini akan menghapus seluruh data check-in pada ' . number_format($count) . ' peserta yang dipilih.'
+                                : 'Belum ada peserta yang dipilih.';
+                        })
+                        ->visible(fn (): bool => $canManageAttendance)
+                        ->action(function (BulkAction $action): void {
+                            $deleted = app(AttendanceReportMaintenanceService::class)->resetAttendanceForStudents(
+                                $action->getSelectedRecords(),
+                            );
+
+                            Notification::make()
+                                ->title($deleted > 0 ? 'Kehadiran peserta terpilih berhasil direset' : 'Tidak ada data kehadiran pada pilihan saat ini')
+                                ->success()
+                                ->send();
+                        })
+                        ->deselectRecordsAfterCompletion(),
+                ]),
             ])
             ->emptyStateHeading('Belum ada data laporan yang dapat ditampilkan')
             ->emptyStateDescription('Pilih filter acara untuk melihat daftar peserta hadir dan belum hadir pada event tertentu.');
